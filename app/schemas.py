@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from datetime import datetime, date
 from typing import Optional
 
@@ -10,13 +10,12 @@ class UserCreate(BaseModel):
     password: str
 
 class UserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     username: str
     email: str
     created_at: datetime
-
-    class Config:
-        from_attributes = True
 
 # --- AUTH ---
 
@@ -35,22 +34,20 @@ class HabitUpdate(BaseModel):
     description: Optional[str] = None
 
 class HabitResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     name: str
     description: Optional[str]
     created_at: datetime
     owner_id: int
 
-    class Config:
-        from_attributes = True
-
 # --- LOGS ---
 
 class HabitLogResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     habit_id: int
     date: date
     completed: bool
-
-    class Config:
-        from_attributes = True
