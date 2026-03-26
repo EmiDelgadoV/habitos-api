@@ -1447,11 +1447,7 @@
       }
       if (!res.ok) {
         let msg = `Error ${res.status}`;
-        try {
-          const err = await res.json();
-          if (typeof err.detail === 'string') msg = err.detail;
-          else if (Array.isArray(err.detail)) msg = err.detail.map(e => e.msg).join(', ');
-        } catch (e) { }
+        try { const err = await res.json(); msg = err.detail || msg; } catch (e) { }
         throw new Error(msg);
       }
       return res.json().catch(() => null);
