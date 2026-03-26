@@ -1189,6 +1189,11 @@
       <!-- REGISTER -->
       <div class="auth-form" id="authFormRegister">
         <div class="auth-field">
+          <label class="auth-label">Nombre de usuario</label>
+          <input class="auth-input" id="regUsername" type="text" placeholder="tu_nombre"
+            onkeydown="if(event.key==='Enter') doRegister()">
+        </div>
+        <div class="auth-field">
           <label class="auth-label">Email</label>
           <input class="auth-input" id="regEmail" type="email" placeholder="tu@email.com"
             onkeydown="if(event.key==='Enter') doRegister()">
@@ -1500,9 +1505,10 @@
     }
 
     async function doRegister() {
+      const username = document.getElementById('regUsername').value.trim();
       const email = document.getElementById('regEmail').value.trim();
       const password = document.getElementById('regPassword').value;
-      if (!email || !password) { setAuthError('Completá todos los campos.'); return; }
+      if (!username || !email || !password) { setAuthError('Completá todos los campos.'); return; }
       if (password.length < 6) { setAuthError('La contraseña debe tener al menos 6 caracteres.'); return; }
 
       const btn = document.getElementById('registerBtn');
@@ -1511,7 +1517,7 @@
       setAuthError('');
 
       try {
-        await apiCall('POST', '/auth/register', { email, password });
+        await apiCall('POST', '/auth/register', { username, email, password });
         showToast('Cuenta creada. Ingresá ahora.');
         switchAuthTab('login');
         document.getElementById('loginEmail').value = email;
