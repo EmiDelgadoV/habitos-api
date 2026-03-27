@@ -9,9 +9,11 @@ router = APIRouter(prefix="/auth", tags=["Autenticación"])
 
 @router.post("/register", response_model=schemas.UserResponse, status_code=201)
 def register(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
-    # Verificar si el usuario o email ya existe
+    # Si no viene username, lo derivamos del email
+    username = user_data.username or user_data.email.split("@")[0]
+
     existing = db.query(models.User).filter(
-        (models.User.username == user_data.username) |
+        (models.User.username == username) |
         (models.User.email == user_data.email)
     ).first()
     if existing:
@@ -20,9 +22,8 @@ def register(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
             detail="El usuario o email ya está registrado"
         )
 
-    # Crear el usuario
     new_user = models.User(
-        username=user_data.username,
+        username=username,
         email=user_data.email,
         hashed_password=hash_password(user_data.password)
     )
@@ -35,7 +36,8 @@ def register(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     # Buscar usuario
     user = db.query(models.User).filter(
-        models.User.username == form_data.username
+        (models.User.username == form_data.username) |
+        (models.User.email == form_data.username)
     ).first()
 
     if not user or not verify_password(form_data.password, user.hashed_password):
