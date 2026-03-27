@@ -75,6 +75,7 @@ def delete_habit(
 @router.post("/{habit_id}/log", response_model=schemas.HabitLogResponse, status_code=201)
 def log_habit(
     habit_id: int,
+    log_data: schemas.HabitLogCreate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
@@ -85,15 +86,15 @@ def log_habit(
     if not habit:
         raise HTTPException(status_code=404, detail="Hábito no encontrado")
 
-    today = date.today()
+    log_date = log_data.completed_at or date.today()
     existing_log = db.query(models.HabitLog).filter(
         models.HabitLog.habit_id == habit_id,
-        models.HabitLog.date == today
+        models.HabitLog.date == log_date
     ).first()
     if existing_log:
-        raise HTTPException(status_code=400, detail="Ya completaste este hábito hoy")
+        raise HTTPException(status_code=400, detail="Ya completaste este hábito ese día")
 
-    log = models.HabitLog(habit_id=habit_id, date=today, completed=True)
+    log = models.HabitLog(habit_id=habit_id, date=log_date, completed=True)
     db.add(log)
     db.commit()
     db.refresh(log)

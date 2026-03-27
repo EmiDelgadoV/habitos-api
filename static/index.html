@@ -1,1042 +1,1773 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Diario de Hábitos</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #0f0e0c;
-    --surface: #1a1916;
-    --surface2: #242220;
-    --border: #2e2c29;
-    --accent: #e8c56d;
-    --accent2: #c97d4e;
-    --accent3: #7ab89a;
-    --text: #f0ece3;
-    --text2: #a09a8e;
-    --text3: #6b6560;
-    --red: #c05a5a;
-    --green: #7ab89a;
-    --radius: 12px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diario de Hábitos</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0e0c;
+      --surface: #1a1916;
+      --surface2: #242220;
+      --border: #2e2c29;
+      --accent: #e8c56d;
+      --accent2: #c97d4e;
+      --accent3: #7ab89a;
+      --text: #f0ece3;
+      --text2: #a09a8e;
+      --text3: #6b6560;
+      --red: #c05a5a;
+      --green: #7ab89a;
+      --radius: 12px;
+    }
 
-  /* ===== AUTH OVERLAY ===== */
-  .auth-overlay {
-    position: fixed; inset: 0;
-    background: var(--bg);
-    z-index: 1000;
-    display: flex; align-items: center; justify-content: center;
-    padding: 20px;
-  }
-  .auth-overlay.hidden { display: none; }
-  .auth-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 40px;
-    width: 380px;
-    max-width: 100%;
-  }
-  .auth-logo {
-    font-family: 'Playfair Display', serif;
-    font-size: 26px;
-    font-weight: 900;
-    color: var(--accent);
-    margin-bottom: 4px;
-  }
-  .auth-subtitle {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--text3);
-    margin-bottom: 32px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-  .auth-tabs {
-    display: flex;
-    gap: 4px;
-    margin-bottom: 24px;
-    background: var(--surface2);
-    border-radius: 8px;
-    padding: 4px;
-  }
-  .auth-tab {
-    flex: 1;
-    padding: 8px;
-    border: none;
-    border-radius: 6px;
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    cursor: pointer;
-    background: transparent;
-    color: var(--text3);
-    transition: all 0.2s;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-  .auth-tab.active { background: var(--surface); color: var(--text); }
-  .auth-form { display: none; }
-  .auth-form.active { display: block; }
-  .auth-field { margin-bottom: 16px; }
-  .auth-label {
-    display: block;
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 6px;
-  }
-  .auth-input {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px 14px;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .auth-input:focus { border-color: var(--accent); }
-  .auth-input::placeholder { color: var(--text3); }
-  .auth-btn {
-    width: 100%;
-    padding: 12px;
-    background: var(--accent);
-    color: var(--bg);
-    border: none;
-    border-radius: 8px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 8px;
-    transition: background 0.2s;
-  }
-  .auth-btn:hover { background: #f0d080; }
-  .auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .auth-error {
-    font-size: 12px;
-    color: var(--red);
-    font-family: 'DM Mono', monospace;
-    margin-top: 14px;
-    min-height: 16px;
-    line-height: 1.5;
-  }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  /* ===== LOADING OVERLAY ===== */
-  .loading-overlay {
-    position: fixed; inset: 0;
-    background: rgba(15,14,12,0.85);
-    z-index: 500;
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column; gap: 14px;
-  }
-  .loading-overlay.hidden { display: none; }
-  .loading-spinner {
-    width: 22px; height: 22px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-text {
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    color: var(--text3);
-  }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
 
-  /* ===== HEADER ===== */
-  .app-header {
-    padding: 32px 40px 20px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    background: var(--bg);
-    z-index: 100;
-  }
-  .app-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 28px;
-    font-weight: 900;
-    letter-spacing: -0.5px;
-    color: var(--accent);
-  }
-  .app-title span { color: var(--text2); font-weight: 400; font-size: 18px; margin-left: 10px; }
-  .header-right { display: flex; align-items: center; gap: 10px; }
-  .year-badge {
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    color: var(--text3);
-    border: 1px solid var(--border);
-    padding: 6px 14px;
-    border-radius: 20px;
-  }
-  .logout-btn {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--text3);
-    background: transparent;
-    border: 1px solid var(--border);
-    padding: 6px 14px;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-  .logout-btn:hover { color: var(--text); border-color: var(--text3); }
+    /* ===== AUTH OVERLAY ===== */
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
 
-  /* ===== NAV TABS ===== */
-  .nav-tabs {
-    display: flex;
-    gap: 4px;
-    padding: 16px 40px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg);
-  }
-  .nav-tab {
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 0.05em;
-    padding: 8px 18px;
-    border-radius: 6px;
-    border: 1px solid transparent;
-    cursor: pointer;
-    color: var(--text3);
-    background: transparent;
-    transition: all 0.2s;
-    text-transform: uppercase;
-  }
-  .nav-tab:hover { color: var(--text2); border-color: var(--border); }
-  .nav-tab.active { background: var(--accent); color: var(--bg); font-weight: 500; border-color: var(--accent); }
+    .auth-overlay.hidden {
+      display: none;
+    }
 
-  /* ===== MONTH SELECTOR ===== */
-  .month-bar {
-    display: flex;
-    gap: 6px;
-    padding: 16px 40px;
-    overflow-x: auto;
-    border-bottom: 1px solid var(--border);
-    scrollbar-width: none;
-  }
-  .month-bar::-webkit-scrollbar { display: none; }
-  .month-pill {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    padding: 6px 14px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    cursor: pointer;
-    color: var(--text3);
-    background: transparent;
-    white-space: nowrap;
-    transition: all 0.2s;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-  .month-pill:hover { color: var(--text); border-color: var(--text3); }
-  .month-pill.active { background: var(--surface2); color: var(--accent); border-color: var(--accent); }
-  .month-pill.has-data::after { content: '●'; margin-left: 5px; color: var(--accent3); font-size: 7px; vertical-align: middle; }
+    .auth-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      width: 380px;
+      max-width: 100%;
+    }
 
-  /* ===== MAIN ===== */
-  .main { padding: 32px 40px; max-width: 1400px; }
-  .section-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 24px; }
-  .section-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--text); }
-  .section-sub { font-size: 13px; color: var(--text3); font-family: 'DM Mono', monospace; }
+    .auth-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
 
-  /* ===== HABIT CONTROLS ===== */
-  .habit-controls { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
-  .habit-input {
-    flex: 1; min-width: 200px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 8px; padding: 10px 16px;
-    color: var(--text); font-family: 'DM Sans', sans-serif;
-    font-size: 14px; outline: none; transition: border-color 0.2s;
-  }
-  .habit-input:focus { border-color: var(--accent); }
-  .habit-input::placeholder { color: var(--text3); }
-  .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; transition: all 0.2s; }
-  .btn-primary { background: var(--accent); color: var(--bg); }
-  .btn-primary:hover { background: #f0d080; }
-  .btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); }
-  .btn-ghost:hover { border-color: var(--text2); color: var(--text); }
+    .auth-subtitle {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--text3);
+      margin-bottom: 32px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
 
-  /* ===== HABIT GRID ===== */
-  .habit-grid-container { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
-  .habit-grid { width: 100%; border-collapse: collapse; min-width: 900px; }
-  .habit-grid th {
-    font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3);
-    text-align: center; padding: 10px 4px; border-bottom: 1px solid var(--border);
-    letter-spacing: 0.04em; background: var(--surface); position: sticky; top: 0;
-  }
-  .habit-grid th.habit-name-th { text-align: left; padding-left: 16px; min-width: 160px; font-size: 11px; }
-  .habit-grid td { border-bottom: 1px solid var(--border); background: var(--bg); }
-  .habit-grid tr:last-child td { border-bottom: none; }
-  .habit-row:hover td { background: var(--surface); }
-  .habit-name-cell { padding: 10px 8px 10px 16px; font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 8px; white-space: nowrap; }
-  .habit-emoji { font-size: 16px; width: 24px; text-align: center; }
-  .delete-habit { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 14px; padding: 2px 4px; border-radius: 4px; opacity: 0; transition: opacity 0.2s; }
-  .habit-row:hover .delete-habit { opacity: 1; }
-  .delete-habit:hover { color: var(--red); }
-  .check-cell { text-align: center; padding: 8px 2px; width: 32px; }
-  .day-check {
-    width: 24px; height: 24px; border-radius: 6px; border: 1.5px solid var(--border);
-    background: transparent; cursor: pointer; display: flex; align-items: center;
-    justify-content: center; margin: 0 auto; transition: all 0.15s; font-size: 12px;
-  }
-  .day-check:hover { border-color: var(--accent); }
-  .day-check.checked { background: var(--accent); border-color: var(--accent); color: var(--bg); }
-  .day-check.checked::after { content: '✓'; font-weight: 700; }
-  .day-check.failed { background: var(--red); border-color: var(--red); color: white; }
-  .day-check.failed::after { content: '✗'; font-weight: 700; }
-  .day-check.today-mark { border-color: var(--accent2); }
-  .day-check.future { opacity: 0.25; cursor: default; }
-  .day-check.syncing { opacity: 0.6; cursor: wait; }
+    .auth-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 24px;
+      background: var(--surface2);
+      border-radius: 8px;
+      padding: 4px;
+    }
 
-  /* ===== REASON POPUP ===== */
-  .reason-popup-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 200;
-    display: flex; align-items: center; justify-content: center;
-    animation: fadeIn 0.15s ease;
-  }
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  .reason-popup {
-    background: var(--surface); border: 1px solid var(--border);
-    border-top: 2px solid var(--red); border-radius: 14px;
-    padding: 24px; width: 340px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-    animation: slideUp 0.2s ease;
-  }
-  @keyframes slideUp { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-  .reason-popup h3 { font-family: 'Playfair Display', serif; font-size: 16px; margin-bottom: 4px; color: var(--text); }
-  .reason-popup .popup-meta { font-size: 11px; color: var(--text3); margin-bottom: 14px; font-family: 'DM Mono', monospace; }
-  .reason-popup textarea {
-    width: 100%; background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 8px; padding: 10px 12px; color: var(--text);
-    font-family: 'DM Sans', sans-serif; font-size: 13px; line-height: 1.6;
-    outline: none; resize: vertical; min-height: 80px; margin-bottom: 14px;
-    transition: border-color 0.2s;
-  }
-  .reason-popup textarea:focus { border-color: var(--red); }
-  .reason-popup textarea::placeholder { color: var(--text3); }
-  .reason-popup-actions { display: flex; gap: 8px; justify-content: flex-end; }
-  .btn-danger { background: var(--red); color: white; }
-  .btn-danger:hover { background: #d06666; }
-  .habit-stats { padding: 8px 12px; text-align: center; }
-  .stats-pill { display: inline-block; font-family: 'DM Mono', monospace; font-size: 10px; padding: 3px 8px; border-radius: 10px; background: var(--surface2); color: var(--text3); }
-  .stats-pill.good { background: rgba(122,184,154,0.2); color: var(--green); }
-  .stats-pill.mid { background: rgba(232,197,109,0.2); color: var(--accent); }
+    .auth-tab {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      border-radius: 6px;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      cursor: pointer;
+      background: transparent;
+      color: var(--text3);
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
 
-  /* ===== PROGRESS ROW ===== */
-  .progress-row td { background: var(--surface) !important; }
-  .day-progress { height: 3px; background: var(--border); border-radius: 2px; margin: 0 3px; }
-  .day-progress-fill { height: 100%; border-radius: 2px; background: var(--accent3); transition: width 0.3s; }
+    .auth-tab.active {
+      background: var(--surface);
+      color: var(--text);
+    }
 
-  /* ===== OBJECTIVES ===== */
-  .objectives-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  @media (max-width: 768px) { .objectives-grid { grid-template-columns: 1fr; } }
-  .obj-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
-  .obj-card-title { font-family: 'DM Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-  .obj-card-title .dot { width: 8px; height: 8px; border-radius: 50%; }
-  .dot-green { background: var(--green); }
-  .dot-red { background: var(--red); }
-  .obj-list { display: flex; flex-direction: column; gap: 8px; }
-  .obj-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 8px; background: var(--surface2); border: 1px solid var(--border); transition: border-color 0.2s; }
-  .obj-item:hover { border-color: var(--text3); }
-  .obj-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border); background: transparent; cursor: pointer; flex-shrink: 0; margin-top: 1px; transition: all 0.15s; display: flex; align-items: center; justify-content: center; font-size: 10px; }
-  .obj-check.done { background: var(--green); border-color: var(--green); color: white; }
-  .obj-check.done::after { content: '✓'; }
-  .obj-check.failed { background: var(--red); border-color: var(--red); color: white; }
-  .obj-check.failed::after { content: '✗'; }
-  .obj-text { flex: 1; font-size: 13px; line-height: 1.5; outline: none; background: transparent; border: none; color: var(--text); font-family: 'DM Sans', sans-serif; resize: none; cursor: text; }
-  .obj-text.completed { text-decoration: line-through; color: var(--text3); }
-  .obj-reason { margin-top: 8px; padding: 8px 12px; background: rgba(192,90,90,0.1); border-radius: 6px; border-left: 2px solid var(--red); display: none; }
-  .obj-reason.visible { display: block; }
-  .obj-reason textarea { width: 100%; background: transparent; border: none; color: var(--text2); font-size: 12px; font-family: 'DM Sans', sans-serif; outline: none; resize: none; min-height: 40px; }
-  .obj-reason textarea::placeholder { color: var(--text3); }
-  .obj-actions { display: flex; gap: 6px; margin-left: auto; flex-shrink: 0; }
-  .obj-action-btn { background: none; border: none; cursor: pointer; font-size: 13px; color: var(--text3); padding: 2px; border-radius: 4px; transition: color 0.2s; }
-  .obj-action-btn:hover { color: var(--text); }
-  .add-obj-row { display: flex; gap: 8px; margin-top: 12px; }
-  .add-obj-input { flex: 1; background: var(--surface2); border: 1px dashed var(--border); border-radius: 8px; padding: 8px 12px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none; }
-  .add-obj-input:focus { border-color: var(--accent); border-style: solid; }
-  .add-obj-input::placeholder { color: var(--text3); }
+    .auth-form {
+      display: none;
+    }
 
-  /* ===== REFLECTION ===== */
-  .reflection-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-  @media (max-width: 900px) { .reflection-grid { grid-template-columns: 1fr; } }
-  .reflection-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column; }
-  .reflection-card-title { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
-  .reflection-card-hint { font-size: 11px; color: var(--text3); margin-bottom: 14px; font-family: 'DM Mono', monospace; }
-  .reflection-textarea { flex: 1; min-height: 150px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; line-height: 1.7; outline: none; resize: vertical; transition: border-color 0.2s; }
-  .reflection-textarea:focus { border-color: var(--accent); }
-  .reflection-textarea::placeholder { color: var(--text3); }
+    .auth-form.active {
+      display: block;
+    }
 
-  /* ===== MOOD ===== */
-  .mood-selector { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
-  .mood-btn { font-size: 20px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); background: transparent; cursor: pointer; transition: all 0.2s; }
-  .mood-btn:hover { background: var(--surface2); }
-  .mood-btn.selected { background: var(--surface2); border-color: var(--accent); transform: scale(1.15); }
+    .auth-field {
+      margin-bottom: 16px;
+    }
 
-  /* ===== TABS ===== */
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
+    .auth-label {
+      display: block;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
 
-  /* ===== SUMMARY BAR ===== */
-  .summary-bar { display: flex; gap: 16px; padding: 16px 40px; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
-  .summary-stat { display: flex; flex-direction: column; gap: 2px; min-width: 100px; }
-  .summary-stat-value { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: var(--accent); }
-  .summary-stat-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; }
-  .divider { width: 1px; background: var(--border); flex-shrink: 0; }
+    .auth-input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
 
-  /* ===== SAVE INDICATOR ===== */
-  .save-indicator { position: fixed; bottom: 20px; right: 24px; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 8px 16px; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); opacity: 0; transition: opacity 0.3s; }
-  .save-indicator.show { opacity: 1; }
+    .auth-input:focus {
+      border-color: var(--accent);
+    }
 
-  /* ===== EMPTY STATE ===== */
-  .empty-state { text-align: center; padding: 48px 24px; color: var(--text3); font-size: 14px; font-family: 'DM Mono', monospace; }
-  .empty-state .icon { font-size: 32px; margin-bottom: 12px; }
+    .auth-input::placeholder {
+      color: var(--text3);
+    }
 
-  /* ===== TOAST ===== */
-  .toast {
-    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 20px; padding: 10px 20px;
-    font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text2);
-    opacity: 0; transition: opacity 0.3s; z-index: 300; white-space: nowrap;
-  }
-  .toast.show { opacity: 1; }
-  .toast.error { border-color: var(--red); color: var(--red); }
+    .auth-btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.2s;
+    }
 
-  /* ===== RESPONSIVE ===== */
-  @media (max-width: 600px) {
-    .app-header, .nav-tabs, .month-bar, .main, .summary-bar { padding-left: 16px; padding-right: 16px; }
-    .app-title span { display: none; }
-  }
-</style>
+    .auth-btn:hover {
+      background: #f0d080;
+    }
+
+    .auth-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .auth-error {
+      font-size: 12px;
+      color: var(--red);
+      font-family: 'DM Mono', monospace;
+      margin-top: 14px;
+      min-height: 16px;
+      line-height: 1.5;
+    }
+
+    /* ===== LOADING OVERLAY ===== */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 14, 12, 0.85);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .loading-overlay.hidden {
+      display: none;
+    }
+
+    .loading-spinner {
+      width: 22px;
+      height: 22px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loading-text {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      color: var(--text3);
+    }
+
+    /* ===== HEADER ===== */
+    .app-header {
+      padding: 32px 40px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 100;
+    }
+
+    .app-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      color: var(--accent);
+    }
+
+    .app-title span {
+      color: var(--text2);
+      font-weight: 400;
+      font-size: 18px;
+      margin-left: 10px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .year-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: var(--text3);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 20px;
+    }
+
+    .logout-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--text3);
+      background: transparent;
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .logout-btn:hover {
+      color: var(--text);
+      border-color: var(--text3);
+    }
+
+    /* ===== NAV TABS ===== */
+    .nav-tabs {
+      display: flex;
+      gap: 4px;
+      padding: 16px 40px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+
+    .nav-tab {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      padding: 8px 18px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      color: var(--text3);
+      background: transparent;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+
+    .nav-tab:hover {
+      color: var(--text2);
+      border-color: var(--border);
+    }
+
+    .nav-tab.active {
+      background: var(--accent);
+      color: var(--bg);
+      font-weight: 500;
+      border-color: var(--accent);
+    }
+
+    /* ===== MONTH SELECTOR ===== */
+    .month-bar {
+      display: flex;
+      gap: 6px;
+      padding: 16px 40px;
+      overflow-x: auto;
+      border-bottom: 1px solid var(--border);
+      scrollbar-width: none;
+    }
+
+    .month-bar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .month-pill {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      color: var(--text3);
+      background: transparent;
+      white-space: nowrap;
+      transition: all 0.2s;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .month-pill:hover {
+      color: var(--text);
+      border-color: var(--text3);
+    }
+
+    .month-pill.active {
+      background: var(--surface2);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .month-pill.has-data::after {
+      content: '●';
+      margin-left: 5px;
+      color: var(--accent3);
+      font-size: 7px;
+      vertical-align: middle;
+    }
+
+    /* ===== MAIN ===== */
+    .main {
+      padding: 32px 40px;
+      max-width: 1400px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .section-sub {
+      font-size: 13px;
+      color: var(--text3);
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* ===== HABIT CONTROLS ===== */
+    .habit-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .habit-input {
+      flex: 1;
+      min-width: 200px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 16px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .habit-input:focus {
+      border-color: var(--accent);
+    }
+
+    .habit-input::placeholder {
+      color: var(--text3);
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
+    .btn-primary:hover {
+      background: #f0d080;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text2);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--text2);
+      color: var(--text);
+    }
+
+    /* ===== HABIT GRID ===== */
+    .habit-grid-container {
+      overflow-x: auto;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+
+    .habit-grid {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+    }
+
+    .habit-grid th {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--text3);
+      text-align: center;
+      padding: 10px 4px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: 0.04em;
+      background: var(--surface);
+      position: sticky;
+      top: 0;
+    }
+
+    .habit-grid th.habit-name-th {
+      text-align: left;
+      padding-left: 16px;
+      min-width: 160px;
+      font-size: 11px;
+    }
+
+    .habit-grid td {
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+
+    .habit-grid tr:last-child td {
+      border-bottom: none;
+    }
+
+    .habit-row:hover td {
+      background: var(--surface);
+    }
+
+    .habit-name-cell {
+      padding: 10px 8px 10px 16px;
+      font-size: 13px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .habit-emoji {
+      font-size: 16px;
+      width: 24px;
+      text-align: center;
+    }
+
+    .delete-habit {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text3);
+      font-size: 14px;
+      padding: 2px 4px;
+      border-radius: 4px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .habit-row:hover .delete-habit {
+      opacity: 1;
+    }
+
+    .delete-habit:hover {
+      color: var(--red);
+    }
+
+    .check-cell {
+      text-align: center;
+      padding: 8px 2px;
+      width: 32px;
+    }
+
+    .day-check {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+      transition: all 0.15s;
+      font-size: 12px;
+    }
+
+    .day-check:hover {
+      border-color: var(--accent);
+    }
+
+    .day-check.checked {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--bg);
+    }
+
+    .day-check.checked::after {
+      content: '✓';
+      font-weight: 700;
+    }
+
+    .day-check.failed {
+      background: var(--red);
+      border-color: var(--red);
+      color: white;
+    }
+
+    .day-check.failed::after {
+      content: '✗';
+      font-weight: 700;
+    }
+
+    .day-check.today-mark {
+      border-color: var(--accent2);
+    }
+
+    .day-check.future {
+      opacity: 0.25;
+      cursor: default;
+    }
+
+    .day-check.syncing {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    /* ===== REASON POPUP ===== */
+    .reason-popup-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.15s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .reason-popup {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--red);
+      border-radius: 14px;
+      padding: 24px;
+      width: 340px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      animation: slideUp 0.2s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(12px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .reason-popup h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+
+    .reason-popup .popup-meta {
+      font-size: 11px;
+      color: var(--text3);
+      margin-bottom: 14px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .reason-popup textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      line-height: 1.6;
+      outline: none;
+      resize: vertical;
+      min-height: 80px;
+      margin-bottom: 14px;
+      transition: border-color 0.2s;
+    }
+
+    .reason-popup textarea:focus {
+      border-color: var(--red);
+    }
+
+    .reason-popup textarea::placeholder {
+      color: var(--text3);
+    }
+
+    .reason-popup-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .btn-danger {
+      background: var(--red);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #d06666;
+    }
+
+    .habit-stats {
+      padding: 8px 12px;
+      text-align: center;
+    }
+
+    .stats-pill {
+      display: inline-block;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 10px;
+      background: var(--surface2);
+      color: var(--text3);
+    }
+
+    .stats-pill.good {
+      background: rgba(122, 184, 154, 0.2);
+      color: var(--green);
+    }
+
+    .stats-pill.mid {
+      background: rgba(232, 197, 109, 0.2);
+      color: var(--accent);
+    }
+
+    /* ===== PROGRESS ROW ===== */
+    .progress-row td {
+      background: var(--surface) !important;
+    }
+
+    .day-progress {
+      height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 0 3px;
+    }
+
+    .day-progress-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--accent3);
+      transition: width 0.3s;
+    }
+
+    /* ===== OBJECTIVES ===== */
+    .objectives-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .objectives-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .obj-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .obj-card-title {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .obj-card-title .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .dot-green {
+      background: var(--green);
+    }
+
+    .dot-red {
+      background: var(--red);
+    }
+
+    .obj-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .obj-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      transition: border-color 0.2s;
+    }
+
+    .obj-item:hover {
+      border-color: var(--text3);
+    }
+
+    .obj-check {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: transparent;
+      cursor: pointer;
+      flex-shrink: 0;
+      margin-top: 1px;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+    }
+
+    .obj-check.done {
+      background: var(--green);
+      border-color: var(--green);
+      color: white;
+    }
+
+    .obj-check.done::after {
+      content: '✓';
+    }
+
+    .obj-check.failed {
+      background: var(--red);
+      border-color: var(--red);
+      color: white;
+    }
+
+    .obj-check.failed::after {
+      content: '✗';
+    }
+
+    .obj-text {
+      flex: 1;
+      font-size: 13px;
+      line-height: 1.5;
+      outline: none;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      resize: none;
+      cursor: text;
+    }
+
+    .obj-text.completed {
+      text-decoration: line-through;
+      color: var(--text3);
+    }
+
+    .obj-reason {
+      margin-top: 8px;
+      padding: 8px 12px;
+      background: rgba(192, 90, 90, 0.1);
+      border-radius: 6px;
+      border-left: 2px solid var(--red);
+      display: none;
+    }
+
+    .obj-reason.visible {
+      display: block;
+    }
+
+    .obj-reason textarea {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: var(--text2);
+      font-size: 12px;
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      resize: none;
+      min-height: 40px;
+    }
+
+    .obj-reason textarea::placeholder {
+      color: var(--text3);
+    }
+
+    .obj-actions {
+      display: flex;
+      gap: 6px;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    .obj-action-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text3);
+      padding: 2px;
+      border-radius: 4px;
+      transition: color 0.2s;
+    }
+
+    .obj-action-btn:hover {
+      color: var(--text);
+    }
+
+    .add-obj-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .add-obj-input {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .add-obj-input:focus {
+      border-color: var(--accent);
+      border-style: solid;
+    }
+
+    .add-obj-input::placeholder {
+      color: var(--text3);
+    }
+
+    /* ===== REFLECTION ===== */
+    .reflection-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .reflection-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .reflection-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .reflection-card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .reflection-card-hint {
+      font-size: 11px;
+      color: var(--text3);
+      margin-bottom: 14px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .reflection-textarea {
+      flex: 1;
+      min-height: 150px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      line-height: 1.7;
+      outline: none;
+      resize: vertical;
+      transition: border-color 0.2s;
+    }
+
+    .reflection-textarea:focus {
+      border-color: var(--accent);
+    }
+
+    .reflection-textarea::placeholder {
+      color: var(--text3);
+    }
+
+    /* ===== MOOD ===== */
+    .mood-selector {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .mood-btn {
+      font-size: 20px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .mood-btn:hover {
+      background: var(--surface2);
+    }
+
+    .mood-btn.selected {
+      background: var(--surface2);
+      border-color: var(--accent);
+      transform: scale(1.15);
+    }
+
+    /* ===== TABS ===== */
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* ===== SUMMARY BAR ===== */
+    .summary-bar {
+      display: flex;
+      gap: 16px;
+      padding: 16px 40px;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .summary-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 100px;
+    }
+
+    .summary-stat-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .summary-stat-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .divider {
+      width: 1px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+
+    /* ===== SAVE INDICATOR ===== */
+    .save-indicator {
+      position: fixed;
+      bottom: 20px;
+      right: 24px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 8px 16px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--text3);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .save-indicator.show {
+      opacity: 1;
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text3);
+      font-size: 14px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .empty-state .icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+
+    /* ===== TOAST ===== */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 10px 20px;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      color: var(--text2);
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 300;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    .toast.error {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 600px) {
+
+      .app-header,
+      .nav-tabs,
+      .month-bar,
+      .main,
+      .summary-bar {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .app-title span {
+        display: none;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- ===== AUTH OVERLAY ===== -->
-<div id="authOverlay" class="auth-overlay">
-  <div class="auth-card">
-    <div class="auth-logo">Diario de Hábitos</div>
-    <div class="auth-subtitle">Tu año en foco</div>
+  <!-- ===== AUTH OVERLAY ===== -->
+  <div id="authOverlay" class="auth-overlay">
+    <div class="auth-card">
+      <div class="auth-logo">Diario de Hábitos</div>
+      <div class="auth-subtitle">Tu año en foco</div>
 
-    <div class="auth-tabs">
-      <button class="auth-tab active" id="authTabLogin" onclick="switchAuthTab('login')">Ingresar</button>
-      <button class="auth-tab" id="authTabRegister" onclick="switchAuthTab('register')">Registrarse</button>
-    </div>
-
-    <!-- LOGIN -->
-    <div class="auth-form active" id="authFormLogin">
-      <div class="auth-field">
-        <label class="auth-label">Email</label>
-        <input class="auth-input" id="loginEmail" type="email" placeholder="tu@email.com"
-               onkeydown="if(event.key==='Enter') doLogin()">
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="authTabLogin" onclick="switchAuthTab('login')">Ingresar</button>
+        <button class="auth-tab" id="authTabRegister" onclick="switchAuthTab('register')">Registrarse</button>
       </div>
-      <div class="auth-field">
-        <label class="auth-label">Contraseña</label>
-        <input class="auth-input" id="loginPassword" type="password" placeholder="••••••••"
-               onkeydown="if(event.key==='Enter') doLogin()">
-      </div>
-      <button class="auth-btn" id="loginBtn" onclick="doLogin()">Ingresar</button>
-    </div>
 
-    <!-- REGISTER -->
-    <div class="auth-form" id="authFormRegister">
-      <div class="auth-field">
-        <label class="auth-label">Nombre de usuario</label>
-        <input class="auth-input" id="regUsername" type="text" placeholder="tu_nombre"
-               onkeydown="if(event.key==='Enter') doRegister()">
-      </div>
-      <div class="auth-field">
-        <label class="auth-label">Email</label>
-        <input class="auth-input" id="regEmail" type="email" placeholder="tu@email.com"
-               onkeydown="if(event.key==='Enter') doRegister()">
-      </div>
-      <div class="auth-field">
-        <label class="auth-label">Contraseña</label>
-        <input class="auth-input" id="regPassword" type="password" placeholder="••••••••"
-               onkeydown="if(event.key==='Enter') doRegister()">
-      </div>
-      <button class="auth-btn" id="registerBtn" onclick="doRegister()">Crear cuenta</button>
-    </div>
-
-    <div class="auth-error" id="authError"></div>
-  </div>
-</div>
-
-<!-- ===== LOADING OVERLAY ===== -->
-<div id="loadingOverlay" class="loading-overlay hidden">
-  <div class="loading-spinner"></div>
-  <div class="loading-text" id="loadingText">Cargando...</div>
-</div>
-
-<!-- ===== APP ===== -->
-<header class="app-header">
-  <div>
-    <div class="app-title">Diario de Hábitos <span>— Tu año en foco</span></div>
-  </div>
-  <div class="header-right">
-    <div class="year-badge" id="yearBadge">2026</div>
-    <button class="logout-btn" onclick="logout()">Salir</button>
-  </div>
-</header>
-
-<nav class="nav-tabs">
-  <button class="nav-tab active" onclick="switchTab('habits', event)">📋 Hábitos diarios</button>
-  <button class="nav-tab" onclick="switchTab('objectives', event)">🎯 Objetivos del mes</button>
-  <button class="nav-tab" onclick="switchTab('reflection', event)">✨ Reflexión</button>
-</nav>
-
-<div class="summary-bar" id="summaryBar">
-  <div class="summary-stat">
-    <div class="summary-stat-value" id="stat-days">0</div>
-    <div class="summary-stat-label">Días completados</div>
-  </div>
-  <div class="divider"></div>
-  <div class="summary-stat">
-    <div class="summary-stat-value" id="stat-streak">0</div>
-    <div class="summary-stat-label">Racha actual</div>
-  </div>
-  <div class="divider"></div>
-  <div class="summary-stat">
-    <div class="summary-stat-value" id="stat-rate">—</div>
-    <div class="summary-stat-label">Tasa del mes</div>
-  </div>
-  <div class="divider"></div>
-  <div class="summary-stat">
-    <div class="summary-stat-value" id="stat-objectives">0/0</div>
-    <div class="summary-stat-label">Objetivos</div>
-  </div>
-</div>
-
-<div class="month-bar" id="monthBar"></div>
-
-<div class="main">
-
-  <!-- TAB: HABITS -->
-  <div class="tab-content active" id="tab-habits">
-    <div class="section-header">
-      <div class="section-title">Seguimiento de hábitos</div>
-      <div class="section-sub" id="monthNameHeader">— Marzo 2026</div>
-    </div>
-    <div class="habit-controls">
-      <input class="habit-input" id="newHabitInput" placeholder="+ Agregar hábito (ej: Meditar 10 min)"
-             maxlength="50" onkeydown="if(event.key==='Enter') addHabit()">
-      <input class="habit-input" id="newHabitEmoji" placeholder="Emoji" style="max-width:80px; text-align:center;" maxlength="4">
-      <button class="btn btn-primary" onclick="addHabit()">Agregar</button>
-    </div>
-    <div style="font-family:'DM Mono',monospace; font-size:11px; color:var(--text3); margin-bottom: 14px; display:flex; gap:16px; flex-wrap:wrap;">
-      <span>1er clic → <span style="color:var(--accent)">✓ cumplido</span></span>
-      <span>2do clic → <span style="color:var(--red)">✗ no cumplido</span> (+ razón opcional)</span>
-      <span>3er clic → borrar</span>
-    </div>
-    <div class="habit-grid-container">
-      <table class="habit-grid" id="habitTable">
-        <thead id="habitTableHead"></thead>
-        <tbody id="habitTableBody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- TAB: OBJECTIVES -->
-  <div class="tab-content" id="tab-objectives">
-    <div class="section-header">
-      <div class="section-title">Objetivos del mes</div>
-      <div class="section-sub" id="objMonthHeader">— Marzo 2026</div>
-    </div>
-    <div class="objectives-grid">
-      <div class="obj-card">
-        <div class="obj-card-title">
-          <span class="dot dot-green"></span> Objetivos cumplidos / por cumplir
+      <!-- LOGIN -->
+      <div class="auth-form active" id="authFormLogin">
+        <div class="auth-field">
+          <label class="auth-label">Email</label>
+          <input class="auth-input" id="loginEmail" type="email" placeholder="tu@email.com"
+            onkeydown="if(event.key==='Enter') doLogin()">
         </div>
-        <div class="obj-list" id="positiveObjList"></div>
-        <div class="add-obj-row">
-          <input class="add-obj-input" id="positiveObjInput" placeholder="Nuevo objetivo..."
-                 onkeydown="if(event.key==='Enter') addObjective('positive')">
-          <button class="btn btn-primary" onclick="addObjective('positive')">+</button>
+        <div class="auth-field">
+          <label class="auth-label">Contraseña</label>
+          <input class="auth-input" id="loginPassword" type="password" placeholder="••••••••"
+            onkeydown="if(event.key==='Enter') doLogin()">
         </div>
+        <button class="auth-btn" id="loginBtn" onclick="doLogin()">Ingresar</button>
       </div>
-      <div class="obj-card">
-        <div class="obj-card-title">
-          <span class="dot dot-red"></span> Objetivos no cumplidos
+
+      <!-- REGISTER -->
+      <div class="auth-form" id="authFormRegister">
+        <div class="auth-field">
+          <label class="auth-label">Nombre de usuario</label>
+          <input class="auth-input" id="regUsername" type="text" placeholder="tu_nombre"
+            onkeydown="if(event.key==='Enter') doRegister()">
         </div>
-        <div class="obj-list" id="negativeObjList"></div>
-        <div class="add-obj-row">
-          <input class="add-obj-input" id="negativeObjInput" placeholder="Objetivo que no logré..."
-                 onkeydown="if(event.key==='Enter') addObjective('negative')">
-          <button class="btn btn-primary" onclick="addObjective('negative')">+</button>
+        <div class="auth-field">
+          <label class="auth-label">Email</label>
+          <input class="auth-input" id="regEmail" type="email" placeholder="tu@email.com"
+            onkeydown="if(event.key==='Enter') doRegister()">
         </div>
+        <div class="auth-field">
+          <label class="auth-label">Contraseña</label>
+          <input class="auth-input" id="regPassword" type="password" placeholder="••••••••"
+            onkeydown="if(event.key==='Enter') doRegister()">
+        </div>
+        <button class="auth-btn" id="registerBtn" onclick="doRegister()">Crear cuenta</button>
       </div>
+
+      <div class="auth-error" id="authError"></div>
     </div>
   </div>
 
-  <!-- TAB: REFLECTION -->
-  <div class="tab-content" id="tab-reflection">
-    <div class="section-header">
-      <div class="section-title">Reflexión mensual</div>
-      <div class="section-sub" id="refMonthHeader">— Marzo 2026</div>
+  <!-- ===== LOADING OVERLAY ===== -->
+  <div id="loadingOverlay" class="loading-overlay hidden">
+    <div class="loading-spinner"></div>
+    <div class="loading-text" id="loadingText">Cargando...</div>
+  </div>
+
+  <!-- ===== APP ===== -->
+  <header class="app-header">
+    <div>
+      <div class="app-title">Diario de Hábitos <span>— Tu año en foco</span></div>
     </div>
-    <div style="margin-bottom: 20px;">
-      <div style="font-family:'DM Mono',monospace; font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:0.08em; margin-bottom: 10px;">¿Cómo fue este mes?</div>
-      <div class="mood-selector" id="moodSelector">
-        <button class="mood-btn" onclick="selectMood('🔥')" title="En llamas">🔥</button>
-        <button class="mood-btn" onclick="selectMood('😊')" title="Bien">😊</button>
-        <button class="mood-btn" onclick="selectMood('😐')" title="Regular">😐</button>
-        <button class="mood-btn" onclick="selectMood('😔')" title="Difícil">😔</button>
-        <button class="mood-btn" onclick="selectMood('🌱')" title="En crecimiento">🌱</button>
-        <button class="mood-btn" onclick="selectMood('⚡')" title="Intenso">⚡</button>
-        <button class="mood-btn" onclick="selectMood('🌊')" title="Con altibajos">🌊</button>
-      </div>
+    <div class="header-right">
+      <div class="year-badge" id="yearBadge">2026</div>
+      <button class="logout-btn" onclick="logout()">Salir</button>
     </div>
-    <div class="reflection-grid">
-      <div class="reflection-card">
-        <div class="reflection-card-title">💡 Aprendizajes</div>
-        <div class="reflection-card-hint">¿Qué te llevas de este mes?</div>
-        <textarea class="reflection-textarea" id="ref-learnings"
-          placeholder="Escribí los aprendizajes más importantes...&#10;&#10;— Lo que funcionó&#10;— Lo que no&#10;— Nuevas perspectivas"
-          oninput="saveReflection()"></textarea>
-      </div>
-      <div class="reflection-card">
-        <div class="reflection-card-title">❤️ Sensaciones</div>
-        <div class="reflection-card-hint">¿Cómo te sentiste este mes?</div>
-        <textarea class="reflection-textarea" id="ref-feelings"
-          placeholder="Emociones predominantes...&#10;&#10;— Momentos de alegría&#10;— Momentos difíciles&#10;— Relaciones importantes"
-          oninput="saveReflection()"></textarea>
-      </div>
-      <div class="reflection-card">
-        <div class="reflection-card-title">📖 Resumen del mes</div>
-        <div class="reflection-card-hint">El gran cuadro general</div>
-        <textarea class="reflection-textarea" id="ref-summary"
-          placeholder="Un párrafo que capture este mes...&#10;&#10;¿Qué fue lo más importante?&#10;¿Qué querés recordar?&#10;¿Qué dejás atrás?"
-          oninput="saveReflection()"></textarea>
-      </div>
+  </header>
+
+  <nav class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('habits', event)">📋 Hábitos diarios</button>
+    <button class="nav-tab" onclick="switchTab('objectives', event)">🎯 Objetivos del mes</button>
+    <button class="nav-tab" onclick="switchTab('reflection', event)">✨ Reflexión</button>
+  </nav>
+
+  <div class="summary-bar" id="summaryBar">
+    <div class="summary-stat">
+      <div class="summary-stat-value" id="stat-days">0</div>
+      <div class="summary-stat-label">Días completados</div>
+    </div>
+    <div class="divider"></div>
+    <div class="summary-stat">
+      <div class="summary-stat-value" id="stat-streak">0</div>
+      <div class="summary-stat-label">Racha actual</div>
+    </div>
+    <div class="divider"></div>
+    <div class="summary-stat">
+      <div class="summary-stat-value" id="stat-rate">—</div>
+      <div class="summary-stat-label">Tasa del mes</div>
+    </div>
+    <div class="divider"></div>
+    <div class="summary-stat">
+      <div class="summary-stat-value" id="stat-objectives">0/0</div>
+      <div class="summary-stat-label">Objetivos</div>
     </div>
   </div>
 
-</div>
+  <div class="month-bar" id="monthBar"></div>
 
-<div class="save-indicator" id="saveIndicator">✓ Guardado</div>
-<div class="toast" id="toast"></div>
+  <div class="main">
 
-<script>
-// ========================================
-// CONSTANTS
-// ========================================
-const API_URL = 'https://habitos-api.onrender.com';
-const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-const DAYS_IN_MONTH = [31,28,31,30,31,30,31,31,30,31,30,31];
-const CURRENT_YEAR = new Date().getFullYear();
+    <!-- TAB: HABITS -->
+    <div class="tab-content active" id="tab-habits">
+      <div class="section-header">
+        <div class="section-title">Seguimiento de hábitos</div>
+        <div class="section-sub" id="monthNameHeader">— Marzo 2026</div>
+      </div>
+      <div class="habit-controls">
+        <input class="habit-input" id="newHabitInput" placeholder="+ Agregar hábito (ej: Meditar 10 min)" maxlength="50"
+          onkeydown="if(event.key==='Enter') addHabit()">
+        <input class="habit-input" id="newHabitEmoji" placeholder="Emoji" style="max-width:80px; text-align:center;"
+          maxlength="4">
+        <button class="btn btn-primary" onclick="addHabit()">Agregar</button>
+      </div>
+      <div
+        style="font-family:'DM Mono',monospace; font-size:11px; color:var(--text3); margin-bottom: 14px; display:flex; gap:16px; flex-wrap:wrap;">
+        <span>1er clic → <span style="color:var(--accent)">✓ cumplido</span></span>
+        <span>2do clic → <span style="color:var(--red)">✗ no cumplido</span> (+ razón opcional)</span>
+        <span>3er clic → borrar</span>
+      </div>
+      <div class="habit-grid-container">
+        <table class="habit-grid" id="habitTable">
+          <thead id="habitTableHead"></thead>
+          <tbody id="habitTableBody"></tbody>
+        </table>
+      </div>
+    </div>
 
-// ========================================
-// STATE
-// ========================================
-let token = localStorage.getItem('habitCanvas_token') || null;
-let currentMonth = new Date().getMonth();
-let activeTab = 'habits';
+    <!-- TAB: OBJECTIVES -->
+    <div class="tab-content" id="tab-objectives">
+      <div class="section-header">
+        <div class="section-title">Objetivos del mes</div>
+        <div class="section-sub" id="objMonthHeader">— Marzo 2026</div>
+      </div>
+      <div class="objectives-grid">
+        <div class="obj-card">
+          <div class="obj-card-title">
+            <span class="dot dot-green"></span> Objetivos cumplidos / por cumplir
+          </div>
+          <div class="obj-list" id="positiveObjList"></div>
+          <div class="add-obj-row">
+            <input class="add-obj-input" id="positiveObjInput" placeholder="Nuevo objetivo..."
+              onkeydown="if(event.key==='Enter') addObjective('positive')">
+            <button class="btn btn-primary" onclick="addObjective('positive')">+</button>
+          </div>
+        </div>
+        <div class="obj-card">
+          <div class="obj-card-title">
+            <span class="dot dot-red"></span> Objetivos no cumplidos
+          </div>
+          <div class="obj-list" id="negativeObjList"></div>
+          <div class="add-obj-row">
+            <input class="add-obj-input" id="negativeObjInput" placeholder="Objetivo que no logré..."
+              onkeydown="if(event.key==='Enter') addObjective('negative')">
+            <button class="btn btn-primary" onclick="addObjective('negative')">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-// API-backed: habits list + history cache
-let habits = [];       // [{id, name, emoji}]  id = string(API id)
-let historyCache = {}; // habitId -> [{completed_at: "YYYY-MM-DD"}]
+    <!-- TAB: REFLECTION -->
+    <div class="tab-content" id="tab-reflection">
+      <div class="section-header">
+        <div class="section-title">Reflexión mensual</div>
+        <div class="section-sub" id="refMonthHeader">— Marzo 2026</div>
+      </div>
+      <div style="margin-bottom: 20px;">
+        <div
+          style="font-family:'DM Mono',monospace; font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:0.08em; margin-bottom: 10px;">
+          ¿Cómo fue este mes?</div>
+        <div class="mood-selector" id="moodSelector">
+          <button class="mood-btn" onclick="selectMood('🔥')" title="En llamas">🔥</button>
+          <button class="mood-btn" onclick="selectMood('😊')" title="Bien">😊</button>
+          <button class="mood-btn" onclick="selectMood('😐')" title="Regular">😐</button>
+          <button class="mood-btn" onclick="selectMood('😔')" title="Difícil">😔</button>
+          <button class="mood-btn" onclick="selectMood('🌱')" title="En crecimiento">🌱</button>
+          <button class="mood-btn" onclick="selectMood('⚡')" title="Intenso">⚡</button>
+          <button class="mood-btn" onclick="selectMood('🌊')" title="Con altibajos">🌊</button>
+        </div>
+      </div>
+      <div class="reflection-grid">
+        <div class="reflection-card">
+          <div class="reflection-card-title">💡 Aprendizajes</div>
+          <div class="reflection-card-hint">¿Qué te llevas de este mes?</div>
+          <textarea class="reflection-textarea" id="ref-learnings"
+            placeholder="Escribí los aprendizajes más importantes...&#10;&#10;— Lo que funcionó&#10;— Lo que no&#10;— Nuevas perspectivas"
+            oninput="saveReflection()"></textarea>
+        </div>
+        <div class="reflection-card">
+          <div class="reflection-card-title">❤️ Sensaciones</div>
+          <div class="reflection-card-hint">¿Cómo te sentiste este mes?</div>
+          <textarea class="reflection-textarea" id="ref-feelings"
+            placeholder="Emociones predominantes...&#10;&#10;— Momentos de alegría&#10;— Momentos difíciles&#10;— Relaciones importantes"
+            oninput="saveReflection()"></textarea>
+        </div>
+        <div class="reflection-card">
+          <div class="reflection-card-title">📖 Resumen del mes</div>
+          <div class="reflection-card-hint">El gran cuadro general</div>
+          <textarea class="reflection-textarea" id="ref-summary"
+            placeholder="Un párrafo que capture este mes...&#10;&#10;¿Qué fue lo más importante?&#10;¿Qué querés recordar?&#10;¿Qué dejás atrás?"
+            oninput="saveReflection()"></textarea>
+        </div>
+      </div>
+    </div>
 
-// Computed display state: "monthIdx-habitId-day" -> 'done' | 'failed'
-let checks = {};
+  </div>
 
-// Local-only (saved to localStorage)
-// failedOverrides: set of keys overridden to 'failed' over API 'done'
-// failReasons: key -> string
-// objectives: monthIdx -> {positive: [], negative: []}
-// reflection: monthIdx -> {learnings, feelings, summary, mood}
-// habitEmojis: habitId -> emoji
-let local = {
-  failedOverrides: {},
-  failReasons: {},
-  objectives: {},
-  reflection: {},
-  habitEmojis: {},
-};
+  <div class="save-indicator" id="saveIndicator">✓ Guardado</div>
+  <div class="toast" id="toast"></div>
 
-// ========================================
-// LOCAL STORAGE
-// ========================================
-function loadLocal() {
-  try {
-    const saved = localStorage.getItem('habitCanvas_local');
-    if (saved) local = { ...local, ...JSON.parse(saved) };
-  } catch(e) {}
-}
+  <script>
+    // ========================================
+    // CONSTANTS
+    // ========================================
+    const API_URL = 'https://habitos-api.onrender.com';
+    const MONTHS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    const CURRENT_YEAR = new Date().getFullYear();
 
-function saveLocal() {
-  try {
-    localStorage.setItem('habitCanvas_local', JSON.stringify(local));
-  } catch(e) {}
-  showSaveIndicator();
-}
+    // ========================================
+    // STATE
+    // ========================================
+    let token = localStorage.getItem('habitCanvas_token') || null;
+    let currentMonth = new Date().getMonth();
+    let activeTab = 'habits';
 
-function showSaveIndicator() {
-  const el = document.getElementById('saveIndicator');
-  el.classList.add('show');
-  clearTimeout(window._saveTimer);
-  window._saveTimer = setTimeout(() => el.classList.remove('show'), 1500);
-}
+    // API-backed: habits list + history cache
+    let habits = [];       // [{id, name, emoji}]  id = string(API id)
+    let historyCache = {}; // habitId -> [{completed_at: "YYYY-MM-DD"}]
 
-// ========================================
-// API
-// ========================================
-async function apiCall(method, path, body = null) {
-  const headers = { 'Content-Type': 'application/json' };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-  const res = await fetch(API_URL + path, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : null,
-  });
-  if (res.status === 401) {
-    logout();
-    throw new Error('Sesión expirada. Ingresá nuevamente.');
-  }
-  if (!res.ok) {
-    let msg = `Error ${res.status}`;
-    try {
-      const err = await res.json();
-      if (typeof err.detail === 'string') msg = err.detail;
-      else if (Array.isArray(err.detail)) msg = err.detail.map(e => e.msg).join(', ');
-    } catch(e) {}
-    throw new Error(msg);
-  }
-  if (res.status === 204) return null;
-  return res.json().catch(() => null);
-}
+    // Computed display state: "monthIdx-habitId-day" -> 'done' | 'failed'
+    let checks = {};
 
-// ========================================
-// AUTH
-// ========================================
-function switchAuthTab(tab) {
-  document.getElementById('authTabLogin').classList.toggle('active', tab === 'login');
-  document.getElementById('authTabRegister').classList.toggle('active', tab === 'register');
-  document.getElementById('authFormLogin').classList.toggle('active', tab === 'login');
-  document.getElementById('authFormRegister').classList.toggle('active', tab === 'register');
-  document.getElementById('authError').textContent = '';
-}
+    // Local-only (saved to localStorage)
+    // failedOverrides: set of keys overridden to 'failed' over API 'done'
+    // failReasons: key -> string
+    // objectives: monthIdx -> {positive: [], negative: []}
+    // reflection: monthIdx -> {learnings, feelings, summary, mood}
+    // habitEmojis: habitId -> emoji
+    let local = {
+      failedOverrides: {},
+      failReasons: {},
+      objectives: {},
+      reflection: {},
+      habitEmojis: {},
+    };
 
-async function doLogin() {
-  const email = document.getElementById('loginEmail').value.trim();
-  const password = document.getElementById('loginPassword').value;
-  if (!email || !password) { setAuthError('Completá todos los campos.'); return; }
-
-  const btn = document.getElementById('loginBtn');
-  btn.disabled = true;
-  btn.textContent = 'Ingresando...';
-  setAuthError('');
-
-  try {
-    // OAuth2 form data (FastAPI standard)
-    const formData = new URLSearchParams();
-    formData.append('username', email);
-    formData.append('password', password);
-    const res = await fetch(API_URL + '/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: formData.toString(),
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || 'Credenciales incorrectas.');
+    // ========================================
+    // LOCAL STORAGE
+    // ========================================
+    function loadLocal() {
+      try {
+        const saved = localStorage.getItem('habitCanvas_local');
+        if (saved) local = { ...local, ...JSON.parse(saved) };
+      } catch (e) { }
     }
-    const data = await res.json();
-    token = data.access_token;
-    localStorage.setItem('habitCanvas_token', token);
-    await launchApp();
-  } catch(e) {
-    setAuthError(e.message);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Ingresar';
-  }
-}
 
-async function doRegister() {
-  const username = document.getElementById('regUsername').value.trim();
-  const email = document.getElementById('regEmail').value.trim();
-  const password = document.getElementById('regPassword').value;
-  if (!username || !email || !password) { setAuthError('Completá todos los campos.'); return; }
-  if (password.length < 6) { setAuthError('La contraseña debe tener al menos 6 caracteres.'); return; }
-
-  const btn = document.getElementById('registerBtn');
-  btn.disabled = true;
-  btn.textContent = 'Creando cuenta...';
-  setAuthError('');
-
-  try {
-    await apiCall('POST', '/auth/register', { username, email, password });
-    showToast('Cuenta creada. Ingresá ahora.');
-    switchAuthTab('login');
-    document.getElementById('loginEmail').value = email;
-  } catch(e) {
-    setAuthError(e.message);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Crear cuenta';
-  }
-}
-
-function setAuthError(msg) {
-  document.getElementById('authError').textContent = msg;
-}
-
-function logout() {
-  token = null;
-  localStorage.removeItem('habitCanvas_token');
-  habits = [];
-  historyCache = {};
-  checks = {};
-  document.getElementById('authOverlay').classList.remove('hidden');
-  document.getElementById('loginEmail').value = '';
-  document.getElementById('loginPassword').value = '';
-  setAuthError('');
-}
-
-// ========================================
-// APP LAUNCH
-// ========================================
-async function launchApp() {
-  showLoading('Despertando la API...');
-  try {
-    await loadHabitsFromAPI();
-    await loadAllHistory();
-    rebuildChecks();
-    document.getElementById('authOverlay').classList.add('hidden');
-    document.getElementById('yearBadge').textContent = CURRENT_YEAR;
-    buildMonthBar();
-    renderAll();
-  } catch(e) {
-    setAuthError('No se pudo conectar. La API puede estar iniciando (plan gratuito de Render). Esperá 30 segundos y recargá la página.');
-  } finally {
-    hideLoading();
-  }
-}
-
-// ========================================
-// LOADING
-// ========================================
-function showLoading(text = 'Cargando...') {
-  document.getElementById('loadingText').textContent = text;
-  document.getElementById('loadingOverlay').classList.remove('hidden');
-}
-
-function hideLoading() {
-  document.getElementById('loadingOverlay').classList.add('hidden');
-}
-
-// ========================================
-// HABIT DATA FROM API
-// ========================================
-async function loadHabitsFromAPI() {
-  showLoading('Cargando hábitos...');
-  const apiHabits = await apiCall('GET', '/habits/');
-  habits = (apiHabits || []).map(h => ({
-    id: String(h.id),
-    name: h.name,
-    emoji: local.habitEmojis[String(h.id)] || '✦',
-  }));
-}
-
-async function loadAllHistory() {
-  if (habits.length === 0) return;
-  showLoading('Cargando historial...');
-  const promises = habits.map(async h => {
-    try {
-      const history = await apiCall('GET', `/habits/${h.id}/history`);
-      historyCache[h.id] = history || [];
-    } catch(e) {
-      historyCache[h.id] = [];
+    function saveLocal() {
+      try {
+        localStorage.setItem('habitCanvas_local', JSON.stringify(local));
+      } catch (e) { }
+      showSaveIndicator();
     }
-  });
-  await Promise.all(promises);
-}
 
-function rebuildChecks() {
-  checks = {};
-  // Apply failed overrides first (local)
-  Object.keys(local.failedOverrides).forEach(k => {
-    checks[k] = 'failed';
-  });
-  // Apply API history → 'done' (unless overridden to 'failed')
-  habits.forEach(h => {
-    const logs = historyCache[h.id] || [];
-    logs.forEach(log => {
-      if (!log.completed_at) return;
-      const date = new Date(log.completed_at + 'T00:00:00');
-      if (isNaN(date.getTime()) || date.getFullYear() !== CURRENT_YEAR) return;
-      const monthIdx = date.getMonth();
-      const day = date.getDate();
-      const key = `${monthIdx}-${h.id}-${day}`;
-      if (!local.failedOverrides[key]) {
-        checks[key] = 'done';
+    function showSaveIndicator() {
+      const el = document.getElementById('saveIndicator');
+      el.classList.add('show');
+      clearTimeout(window._saveTimer);
+      window._saveTimer = setTimeout(() => el.classList.remove('show'), 1500);
+    }
+
+    // ========================================
+    // API
+    // ========================================
+    async function apiCall(method, path, body = null) {
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(API_URL + path, {
+        method,
+        headers,
+        body: body ? JSON.stringify(body) : null,
+      });
+      if (res.status === 401) {
+        logout();
+        throw new Error('Sesión expirada. Ingresá nuevamente.');
       }
-    });
-  });
-}
-
-function isLoggedInAPI(habitId, monthIdx, day) {
-  const logs = historyCache[habitId] || [];
-  const date = new Date(CURRENT_YEAR, monthIdx, day);
-  const dateStr = date.toISOString().split('T')[0];
-  return logs.some(l => l.completed_at && l.completed_at.startsWith(dateStr));
-}
-
-// ========================================
-// TOGGLE CHECK
-// ========================================
-async function toggleCheck(habitId, day) {
-  const key = `${currentMonth}-${habitId}-${day}`;
-  const current = checks[key];
-
-  if (!current) {
-    // empty → done: call API
-    const date = new Date(CURRENT_YEAR, currentMonth, day);
-    const dateStr = date.toISOString().split('T')[0];
-
-    checks[key] = 'done'; // optimistic
-    updateCheckCell(habitId, day);
-
-    try {
-      await apiCall('POST', `/habits/${habitId}/log`, { completed_at: dateStr });
-      if (!historyCache[habitId]) historyCache[habitId] = [];
-      historyCache[habitId].push({ completed_at: dateStr });
-    } catch(e) {
-      // Rollback
-      delete checks[key];
-      updateCheckCell(habitId, day);
-      showToast('No se pudo guardar. Verificá tu conexión.', true);
-      return;
+      if (!res.ok) {
+        let msg = `Error ${res.status}`;
+        try {
+          const err = await res.json();
+          if (typeof err.detail === 'string') msg = err.detail;
+          else if (Array.isArray(err.detail)) msg = err.detail.map(e => e.msg).join(', ');
+        } catch (e) { }
+        throw new Error(msg);
+      }
+      if (res.status === 204) return null;
+      return res.json().catch(() => null);
     }
 
-  } else if (current === 'done') {
-    // done → failed: local override
-    checks[key] = 'failed';
-    local.failedOverrides[key] = true;
-    saveLocal();
-    updateCheckCell(habitId, day);
-    updateDayProgress(day);
-    updateHabitStat(habitId);
-    updateSummaryBar();
-    buildMonthBar();
-    showReasonPopup(habitId, day);
-    return;
-
-  } else {
-    // failed → empty (or back to done if was logged in API)
-    delete checks[key];
-    delete local.failedOverrides[key];
-    delete local.failReasons[key];
-    saveLocal();
-    if (isLoggedInAPI(habitId, currentMonth, day)) {
-      checks[key] = 'done';
+    // ========================================
+    // AUTH
+    // ========================================
+    function switchAuthTab(tab) {
+      document.getElementById('authTabLogin').classList.toggle('active', tab === 'login');
+      document.getElementById('authTabRegister').classList.toggle('active', tab === 'register');
+      document.getElementById('authFormLogin').classList.toggle('active', tab === 'login');
+      document.getElementById('authFormRegister').classList.toggle('active', tab === 'register');
+      document.getElementById('authError').textContent = '';
     }
-    updateCheckCell(habitId, day);
-  }
 
-  updateDayProgress(day);
-  updateHabitStat(habitId);
-  updateSummaryBar();
-  buildMonthBar();
-}
+    async function doLogin() {
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      if (!email || !password) { setAuthError('Completá todos los campos.'); return; }
 
-function updateCheckCell(habitId, day) {
-  const key = `${currentMonth}-${habitId}-${day}`;
-  const state = checks[key];
-  const cell = document.getElementById('check-' + habitId + '-' + day);
-  if (!cell) return;
-  cell.classList.remove('checked', 'failed', 'syncing');
-  if (state === 'done') cell.classList.add('checked');
-  else if (state === 'failed') cell.classList.add('failed');
-  const reason = local.failReasons[key];
-  if (state === 'failed' && reason) cell.title = reason;
-  else cell.title = '';
-}
+      const btn = document.getElementById('loginBtn');
+      btn.disabled = true;
+      btn.textContent = 'Ingresando...';
+      setAuthError('');
 
-// ========================================
-// ADD / DELETE HABIT
-// ========================================
-async function addHabit() {
-  const input = document.getElementById('newHabitInput');
-  const emojiInput = document.getElementById('newHabitEmoji');
-  const name = input.value.trim();
-  if (!name) return;
-  const emoji = emojiInput.value.trim() || '✦';
+      try {
+        // OAuth2 form data (FastAPI standard)
+        const formData = new URLSearchParams();
+        formData.append('username', email);
+        formData.append('password', password);
+        const res = await fetch(API_URL + '/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: formData.toString(),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || 'Credenciales incorrectas.');
+        }
+        const data = await res.json();
+        token = data.access_token;
+        localStorage.setItem('habitCanvas_token', token);
+        await launchApp();
+      } catch (e) {
+        setAuthError(e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Ingresar';
+      }
+    }
 
-  try {
-    showLoading('Guardando hábito...');
-    const created = await apiCall('POST', '/habits/', { name });
-    const habitId = String(created.id);
-    local.habitEmojis[habitId] = emoji;
-    saveLocal();
-    habits.push({ id: habitId, name, emoji });
-    historyCache[habitId] = [];
-    input.value = '';
-    emojiInput.value = '';
-    renderHabitGrid();
-    updateSummaryBar();
-  } catch(e) {
-    showToast('No se pudo crear el hábito: ' + e.message, true);
-  } finally {
-    hideLoading();
-  }
-}
+    async function doRegister() {
+      const username = document.getElementById('regUsername').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value;
+      if (!username || !email || !password) { setAuthError('Completá todos los campos.'); return; }
+      if (password.length < 6) { setAuthError('La contraseña debe tener al menos 6 caracteres.'); return; }
 
-async function deleteHabit(id) {
-  if (!confirm('¿Eliminar este hábito y todo su historial?')) return;
-  try {
-    showLoading('Eliminando...');
-    await apiCall('DELETE', `/habits/${id}`);
-    habits = habits.filter(h => h.id !== id);
-    delete historyCache[id];
-    delete local.habitEmojis[id];
-    // Clean checks
-    Object.keys(checks).forEach(k => { if (k.includes('-' + id + '-')) delete checks[k]; });
-    Object.keys(local.failedOverrides).forEach(k => { if (k.includes('-' + id + '-')) delete local.failedOverrides[k]; });
-    Object.keys(local.failReasons).forEach(k => { if (k.includes('-' + id + '-')) delete local.failReasons[k]; });
-    saveLocal();
-    renderHabitGrid();
-    updateSummaryBar();
-  } catch(e) {
-    showToast('No se pudo eliminar: ' + e.message, true);
-  } finally {
-    hideLoading();
-  }
-}
+      const btn = document.getElementById('registerBtn');
+      btn.disabled = true;
+      btn.textContent = 'Creando cuenta...';
+      setAuthError('');
 
-// ========================================
-// REASON POPUP
-// ========================================
-function showReasonPopup(habitId, day) {
-  const key = `${currentMonth}-${habitId}-${day}`;
-  const habit = habits.find(h => h.id === habitId);
-  const habitName = habit ? habit.name : 'hábito';
-  const existing = local.failReasons[key] || '';
+      try {
+        await apiCall('POST', '/auth/register', { username, email, password });
+        showToast('Cuenta creada. Ingresá ahora.');
+        switchAuthTab('login');
+        document.getElementById('loginEmail').value = email;
+      } catch (e) {
+        setAuthError(e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Crear cuenta';
+      }
+    }
 
-  const overlay = document.createElement('div');
-  overlay.className = 'reason-popup-overlay';
-  overlay.innerHTML = `
+    function setAuthError(msg) {
+      document.getElementById('authError').textContent = msg;
+    }
+
+    function logout() {
+      token = null;
+      localStorage.removeItem('habitCanvas_token');
+      habits = [];
+      historyCache = {};
+      checks = {};
+      document.getElementById('authOverlay').classList.remove('hidden');
+      document.getElementById('loginEmail').value = '';
+      document.getElementById('loginPassword').value = '';
+      setAuthError('');
+    }
+
+    // ========================================
+    // APP LAUNCH
+    // ========================================
+    async function launchApp() {
+      showLoading('Despertando la API...');
+      try {
+        await loadHabitsFromAPI();
+        await loadAllHistory();
+        rebuildChecks();
+        document.getElementById('authOverlay').classList.add('hidden');
+        document.getElementById('yearBadge').textContent = CURRENT_YEAR;
+        buildMonthBar();
+        renderAll();
+      } catch (e) {
+        setAuthError('No se pudo conectar. La API puede estar iniciando (plan gratuito de Render). Esperá 30 segundos y recargá la página.');
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // ========================================
+    // LOADING
+    // ========================================
+    function showLoading(text = 'Cargando...') {
+      document.getElementById('loadingText').textContent = text;
+      document.getElementById('loadingOverlay').classList.remove('hidden');
+    }
+
+    function hideLoading() {
+      document.getElementById('loadingOverlay').classList.add('hidden');
+    }
+
+    // ========================================
+    // HABIT DATA FROM API
+    // ========================================
+    async function loadHabitsFromAPI() {
+      showLoading('Cargando hábitos...');
+      const apiHabits = await apiCall('GET', '/habits/');
+      habits = (apiHabits || []).map(h => ({
+        id: String(h.id),
+        name: h.name,
+        emoji: local.habitEmojis[String(h.id)] || '✦',
+      }));
+    }
+
+    async function loadAllHistory() {
+      if (habits.length === 0) return;
+      showLoading('Cargando historial...');
+      const promises = habits.map(async h => {
+        try {
+          const history = await apiCall('GET', `/habits/${h.id}/history`);
+          historyCache[h.id] = history || [];
+        } catch (e) {
+          historyCache[h.id] = [];
+        }
+      });
+      await Promise.all(promises);
+    }
+
+    function rebuildChecks() {
+      checks = {};
+      // Apply failed overrides first (local)
+      Object.keys(local.failedOverrides).forEach(k => {
+        checks[k] = 'failed';
+      });
+      // Apply API history → 'done' (unless overridden to 'failed')
+      habits.forEach(h => {
+        const logs = historyCache[h.id] || [];
+        logs.forEach(log => {
+          if (!log.completed_at) return;
+          const date = new Date(log.completed_at + 'T00:00:00');
+          if (isNaN(date.getTime()) || date.getFullYear() !== CURRENT_YEAR) return;
+          const monthIdx = date.getMonth();
+          const day = date.getDate();
+          const key = `${monthIdx}-${h.id}-${day}`;
+          if (!local.failedOverrides[key]) {
+            checks[key] = 'done';
+          }
+        });
+      });
+    }
+
+    function isLoggedInAPI(habitId, monthIdx, day) {
+      const logs = historyCache[habitId] || [];
+      const date = new Date(CURRENT_YEAR, monthIdx, day);
+      const dateStr = date.toISOString().split('T')[0];
+      return logs.some(l => l.completed_at && l.completed_at.startsWith(dateStr));
+    }
+
+    // ========================================
+    // TOGGLE CHECK
+    // ========================================
+    async function toggleCheck(habitId, day) {
+      const key = `${currentMonth}-${habitId}-${day}`;
+      const current = checks[key];
+
+      if (!current) {
+        // empty → done: call API
+        const date = new Date(CURRENT_YEAR, currentMonth, day);
+        const dateStr = date.toISOString().split('T')[0];
+
+        checks[key] = 'done'; // optimistic
+        updateCheckCell(habitId, day);
+
+        try {
+          await apiCall('POST', `/habits/${habitId}/log`, { completed_at: dateStr });
+          if (!historyCache[habitId]) historyCache[habitId] = [];
+          historyCache[habitId].push({ completed_at: dateStr });
+        } catch (e) {
+          // Rollback
+          delete checks[key];
+          updateCheckCell(habitId, day);
+          showToast('No se pudo guardar. Verificá tu conexión.', true);
+          return;
+        }
+
+      } else if (current === 'done') {
+        // done → failed: local override
+        checks[key] = 'failed';
+        local.failedOverrides[key] = true;
+        saveLocal();
+        updateCheckCell(habitId, day);
+        updateDayProgress(day);
+        updateHabitStat(habitId);
+        updateSummaryBar();
+        buildMonthBar();
+        showReasonPopup(habitId, day);
+        return;
+
+      } else {
+        // failed → empty (or back to done if was logged in API)
+        delete checks[key];
+        delete local.failedOverrides[key];
+        delete local.failReasons[key];
+        saveLocal();
+        if (isLoggedInAPI(habitId, currentMonth, day)) {
+          checks[key] = 'done';
+        }
+        updateCheckCell(habitId, day);
+      }
+
+      updateDayProgress(day);
+      updateHabitStat(habitId);
+      updateSummaryBar();
+      buildMonthBar();
+    }
+
+    function updateCheckCell(habitId, day) {
+      const key = `${currentMonth}-${habitId}-${day}`;
+      const state = checks[key];
+      const cell = document.getElementById('check-' + habitId + '-' + day);
+      if (!cell) return;
+      cell.classList.remove('checked', 'failed', 'syncing');
+      if (state === 'done') cell.classList.add('checked');
+      else if (state === 'failed') cell.classList.add('failed');
+      const reason = local.failReasons[key];
+      if (state === 'failed' && reason) cell.title = reason;
+      else cell.title = '';
+    }
+
+    // ========================================
+    // ADD / DELETE HABIT
+    // ========================================
+    async function addHabit() {
+      const input = document.getElementById('newHabitInput');
+      const emojiInput = document.getElementById('newHabitEmoji');
+      const name = input.value.trim();
+      if (!name) return;
+      const emoji = emojiInput.value.trim() || '✦';
+
+      try {
+        showLoading('Guardando hábito...');
+        const created = await apiCall('POST', '/habits/', { name });
+        const habitId = String(created.id);
+        local.habitEmojis[habitId] = emoji;
+        saveLocal();
+        habits.push({ id: habitId, name, emoji });
+        historyCache[habitId] = [];
+        input.value = '';
+        emojiInput.value = '';
+        renderHabitGrid();
+        updateSummaryBar();
+      } catch (e) {
+        showToast('No se pudo crear el hábito: ' + e.message, true);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    async function deleteHabit(id) {
+      if (!confirm('¿Eliminar este hábito y todo su historial?')) return;
+      try {
+        showLoading('Eliminando...');
+        await apiCall('DELETE', `/habits/${id}`);
+        habits = habits.filter(h => h.id !== id);
+        delete historyCache[id];
+        delete local.habitEmojis[id];
+        // Clean checks
+        Object.keys(checks).forEach(k => { if (k.includes('-' + id + '-')) delete checks[k]; });
+        Object.keys(local.failedOverrides).forEach(k => { if (k.includes('-' + id + '-')) delete local.failedOverrides[k]; });
+        Object.keys(local.failReasons).forEach(k => { if (k.includes('-' + id + '-')) delete local.failReasons[k]; });
+        saveLocal();
+        renderHabitGrid();
+        updateSummaryBar();
+      } catch (e) {
+        showToast('No se pudo eliminar: ' + e.message, true);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // ========================================
+    // REASON POPUP
+    // ========================================
+    function showReasonPopup(habitId, day) {
+      const key = `${currentMonth}-${habitId}-${day}`;
+      const habit = habits.find(h => h.id === habitId);
+      const habitName = habit ? habit.name : 'hábito';
+      const existing = local.failReasons[key] || '';
+
+      const overlay = document.createElement('div');
+      overlay.className = 'reason-popup-overlay';
+      overlay.innerHTML = `
     <div class="reason-popup">
       <h3>¿Por qué no lo cumpliste?</h3>
       <div class="popup-meta">${habit ? habit.emoji : '✦'} ${habitName} — día ${day} de ${MONTHS[currentMonth]}</div>
@@ -1046,187 +1777,187 @@ function showReasonPopup(habitId, day) {
         <button class="btn btn-danger" onclick="saveReason('${habitId}', ${day})">Guardar</button>
       </div>
     </div>`;
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeReasonPopup(); });
-  document.body.appendChild(overlay);
-  setTimeout(() => overlay.querySelector('textarea').focus(), 100);
-}
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) closeReasonPopup(); });
+      document.body.appendChild(overlay);
+      setTimeout(() => overlay.querySelector('textarea').focus(), 100);
+    }
 
-function saveReason(habitId, day) {
-  const key = `${currentMonth}-${habitId}-${day}`;
-  const val = document.getElementById('reasonInput').value.trim();
-  if (val) local.failReasons[key] = val;
-  else delete local.failReasons[key];
-  saveLocal();
-  const cell = document.getElementById('check-' + habitId + '-' + day);
-  if (cell && val) cell.title = val;
-  closeReasonPopup();
-}
+    function saveReason(habitId, day) {
+      const key = `${currentMonth}-${habitId}-${day}`;
+      const val = document.getElementById('reasonInput').value.trim();
+      if (val) local.failReasons[key] = val;
+      else delete local.failReasons[key];
+      saveLocal();
+      const cell = document.getElementById('check-' + habitId + '-' + day);
+      if (cell && val) cell.title = val;
+      closeReasonPopup();
+    }
 
-function closeReasonPopup() {
-  const overlay = document.querySelector('.reason-popup-overlay');
-  if (overlay) overlay.remove();
-}
+    function closeReasonPopup() {
+      const overlay = document.querySelector('.reason-popup-overlay');
+      if (overlay) overlay.remove();
+    }
 
-// ========================================
-// RENDER HABIT GRID
-// ========================================
-function renderHabitGrid() {
-  if (habits.length === 0) {
-    document.querySelector('.habit-grid-container').innerHTML = `
+    // ========================================
+    // RENDER HABIT GRID
+    // ========================================
+    function renderHabitGrid() {
+      if (habits.length === 0) {
+        document.querySelector('.habit-grid-container').innerHTML = `
       <div class="empty-state">
         <div class="icon">📋</div>
         Agregá tu primer hábito para empezar a rastrear
       </div>`;
-    return;
-  }
+        return;
+      }
 
-  const days = DAYS_IN_MONTH[currentMonth];
-  const today = new Date();
-  const isCurrentMonth = today.getMonth() === currentMonth && today.getFullYear() === CURRENT_YEAR;
-  const todayDay = isCurrentMonth ? today.getDate() : -1;
+      const days = DAYS_IN_MONTH[currentMonth];
+      const today = new Date();
+      const isCurrentMonth = today.getMonth() === currentMonth && today.getFullYear() === CURRENT_YEAR;
+      const todayDay = isCurrentMonth ? today.getDate() : -1;
 
-  let headHTML = '<tr><th class="habit-name-th">Hábito</th>';
-  for (let d = 1; d <= days; d++) {
-    headHTML += `<th style="${d === todayDay ? 'color:var(--accent);' : ''}">${d}</th>`;
-  }
-  headHTML += '<th>%</th></tr>';
+      let headHTML = '<tr><th class="habit-name-th">Hábito</th>';
+      for (let d = 1; d <= days; d++) {
+        headHTML += `<th style="${d === todayDay ? 'color:var(--accent);' : ''}">${d}</th>`;
+      }
+      headHTML += '<th>%</th></tr>';
 
-  let bodyHTML = '';
-  habits.forEach(h => {
-    let completedDays = 0;
-    const maxDays = isCurrentMonth ? todayDay : days;
+      let bodyHTML = '';
+      habits.forEach(h => {
+        let completedDays = 0;
+        const maxDays = isCurrentMonth ? todayDay : days;
 
-    bodyHTML += `<tr class="habit-row">`;
-    bodyHTML += `<td><div class="habit-name-cell"><span class="habit-emoji">${h.emoji}</span>${h.name}<button class="delete-habit" onclick="deleteHabit('${h.id}')" title="Eliminar">×</button></div></td>`;
+        bodyHTML += `<tr class="habit-row">`;
+        bodyHTML += `<td><div class="habit-name-cell"><span class="habit-emoji">${h.emoji}</span>${h.name}<button class="delete-habit" onclick="deleteHabit('${h.id}')" title="Eliminar">×</button></div></td>`;
 
-    for (let d = 1; d <= days; d++) {
-      const key = `${currentMonth}-${h.id}-${d}`;
-      const state = checks[key];
-      const isFuture = todayDay > 0 && d > todayDay;
-      const isToday = d === todayDay;
-      const hasReason = !!local.failReasons[key];
-      if (state === 'done') completedDays++;
-      const stateClass = state === 'done' ? 'checked' : state === 'failed' ? 'failed' : '';
-      const titleAttr = state === 'failed' && hasReason ? `title="${local.failReasons[key].replace(/"/g,'&quot;')}"` : '';
-      bodyHTML += `<td class="check-cell">
+        for (let d = 1; d <= days; d++) {
+          const key = `${currentMonth}-${h.id}-${d}`;
+          const state = checks[key];
+          const isFuture = todayDay > 0 && d > todayDay;
+          const isToday = d === todayDay;
+          const hasReason = !!local.failReasons[key];
+          if (state === 'done') completedDays++;
+          const stateClass = state === 'done' ? 'checked' : state === 'failed' ? 'failed' : '';
+          const titleAttr = state === 'failed' && hasReason ? `title="${local.failReasons[key].replace(/"/g, '&quot;')}"` : '';
+          bodyHTML += `<td class="check-cell">
         <div id="check-${h.id}-${d}" class="day-check ${stateClass} ${isFuture ? 'future' : ''} ${isToday ? 'today-mark' : ''}"
              ${titleAttr}
              onclick="${isFuture ? '' : `toggleCheck('${h.id}', ${d})`}"></div>
       </td>`;
+        }
+
+        const rate = maxDays > 0 ? Math.round((completedDays / maxDays) * 100) : 0;
+        const quality = rate >= 70 ? 'good' : rate >= 40 ? 'mid' : '';
+        bodyHTML += `<td class="habit-stats"><div id="stat-${h.id}" class="stats-pill ${quality}">${rate}%</div></td>`;
+        bodyHTML += '</tr>';
+      });
+
+      // Progress row
+      bodyHTML += '<tr class="progress-row"><td></td>';
+      for (let d = 1; d <= days; d++) {
+        const done = habits.filter(h => checks[`${currentMonth}-${h.id}-${d}`] === 'done').length;
+        const pct = habits.length > 0 ? (done / habits.length) * 100 : 0;
+        bodyHTML += `<td><div class="day-progress"><div id="prog-${d}" class="day-progress-fill" style="width:${pct}%"></div></div></td>`;
+      }
+      bodyHTML += '<td></td></tr>';
+
+      const container = document.querySelector('.habit-grid-container');
+      container.innerHTML = '<table class="habit-grid"><thead id="habitTableHead"></thead><tbody id="habitTableBody"></tbody></table>';
+      document.getElementById('habitTableHead').innerHTML = headHTML;
+      document.getElementById('habitTableBody').innerHTML = bodyHTML;
     }
 
-    const rate = maxDays > 0 ? Math.round((completedDays / maxDays) * 100) : 0;
-    const quality = rate >= 70 ? 'good' : rate >= 40 ? 'mid' : '';
-    bodyHTML += `<td class="habit-stats"><div id="stat-${h.id}" class="stats-pill ${quality}">${rate}%</div></td>`;
-    bodyHTML += '</tr>';
-  });
-
-  // Progress row
-  bodyHTML += '<tr class="progress-row"><td></td>';
-  for (let d = 1; d <= days; d++) {
-    const done = habits.filter(h => checks[`${currentMonth}-${h.id}-${d}`] === 'done').length;
-    const pct = habits.length > 0 ? (done / habits.length) * 100 : 0;
-    bodyHTML += `<td><div class="day-progress"><div id="prog-${d}" class="day-progress-fill" style="width:${pct}%"></div></div></td>`;
-  }
-  bodyHTML += '<td></td></tr>';
-
-  const container = document.querySelector('.habit-grid-container');
-  container.innerHTML = '<table class="habit-grid"><thead id="habitTableHead"></thead><tbody id="habitTableBody"></tbody></table>';
-  document.getElementById('habitTableHead').innerHTML = headHTML;
-  document.getElementById('habitTableBody').innerHTML = bodyHTML;
-}
-
-function updateDayProgress(day) {
-  const done = habits.filter(h => checks[`${currentMonth}-${h.id}-${day}`] === 'done').length;
-  const pct = habits.length > 0 ? (done / habits.length) * 100 : 0;
-  const el = document.getElementById('prog-' + day);
-  if (el) el.style.width = pct + '%';
-}
-
-function updateHabitStat(habitId) {
-  const days = DAYS_IN_MONTH[currentMonth];
-  const today = new Date();
-  const isCurrentMonth = today.getMonth() === currentMonth;
-  const maxDays = isCurrentMonth ? today.getDate() : days;
-  let done = 0;
-  for (let d = 1; d <= maxDays; d++) {
-    if (checks[`${currentMonth}-${habitId}-${d}`] === 'done') done++;
-  }
-  const rate = maxDays > 0 ? Math.round((done / maxDays) * 100) : 0;
-  const el = document.getElementById('stat-' + habitId);
-  if (el) {
-    el.textContent = rate + '%';
-    el.className = 'stats-pill ' + (rate >= 70 ? 'good' : rate >= 40 ? 'mid' : '');
-  }
-}
-
-// ========================================
-// OBJECTIVES
-// ========================================
-function ensureObjectives() {
-  if (!local.objectives[currentMonth]) {
-    local.objectives[currentMonth] = { positive: [], negative: [] };
-  }
-}
-
-function addObjective(type) {
-  const inputId = type === 'positive' ? 'positiveObjInput' : 'negativeObjInput';
-  const input = document.getElementById(inputId);
-  const text = input.value.trim();
-  if (!text) return;
-  ensureObjectives();
-  const id = 'o' + Date.now();
-  local.objectives[currentMonth][type].push({ id, text, done: false, reason: '' });
-  input.value = '';
-  saveLocal();
-  renderObjectives();
-  updateSummaryBar();
-}
-
-function toggleObjective(type, id) {
-  ensureObjectives();
-  const obj = local.objectives[currentMonth][type].find(o => o.id === id);
-  if (!obj) return;
-  obj.done = !obj.done;
-  saveLocal();
-  renderObjectives();
-  updateSummaryBar();
-}
-
-function deleteObjective(type, id) {
-  ensureObjectives();
-  local.objectives[currentMonth][type] = local.objectives[currentMonth][type].filter(o => o.id !== id);
-  saveLocal();
-  renderObjectives();
-  updateSummaryBar();
-}
-
-function updateObjText(type, id, value) {
-  ensureObjectives();
-  const obj = local.objectives[currentMonth][type].find(o => o.id === id);
-  if (obj) { obj.text = value; saveLocal(); }
-}
-
-function updateObjReason(type, id, value) {
-  ensureObjectives();
-  const obj = local.objectives[currentMonth][type].find(o => o.id === id);
-  if (obj) { obj.reason = value; saveLocal(); }
-}
-
-function renderObjectives() {
-  ensureObjectives();
-  ['positive', 'negative'].forEach(type => {
-    const list = document.getElementById(type + 'ObjList');
-    const items = local.objectives[currentMonth][type];
-    if (items.length === 0) {
-      list.innerHTML = `<div class="empty-state" style="padding:24px 0;font-size:12px;">Sin objetivos aún</div>`;
-      return;
+    function updateDayProgress(day) {
+      const done = habits.filter(h => checks[`${currentMonth}-${h.id}-${day}`] === 'done').length;
+      const pct = habits.length > 0 ? (done / habits.length) * 100 : 0;
+      const el = document.getElementById('prog-' + day);
+      if (el) el.style.width = pct + '%';
     }
-    list.innerHTML = items.map(obj => `
+
+    function updateHabitStat(habitId) {
+      const days = DAYS_IN_MONTH[currentMonth];
+      const today = new Date();
+      const isCurrentMonth = today.getMonth() === currentMonth;
+      const maxDays = isCurrentMonth ? today.getDate() : days;
+      let done = 0;
+      for (let d = 1; d <= maxDays; d++) {
+        if (checks[`${currentMonth}-${habitId}-${d}`] === 'done') done++;
+      }
+      const rate = maxDays > 0 ? Math.round((done / maxDays) * 100) : 0;
+      const el = document.getElementById('stat-' + habitId);
+      if (el) {
+        el.textContent = rate + '%';
+        el.className = 'stats-pill ' + (rate >= 70 ? 'good' : rate >= 40 ? 'mid' : '');
+      }
+    }
+
+    // ========================================
+    // OBJECTIVES
+    // ========================================
+    function ensureObjectives() {
+      if (!local.objectives[currentMonth]) {
+        local.objectives[currentMonth] = { positive: [], negative: [] };
+      }
+    }
+
+    function addObjective(type) {
+      const inputId = type === 'positive' ? 'positiveObjInput' : 'negativeObjInput';
+      const input = document.getElementById(inputId);
+      const text = input.value.trim();
+      if (!text) return;
+      ensureObjectives();
+      const id = 'o' + Date.now();
+      local.objectives[currentMonth][type].push({ id, text, done: false, reason: '' });
+      input.value = '';
+      saveLocal();
+      renderObjectives();
+      updateSummaryBar();
+    }
+
+    function toggleObjective(type, id) {
+      ensureObjectives();
+      const obj = local.objectives[currentMonth][type].find(o => o.id === id);
+      if (!obj) return;
+      obj.done = !obj.done;
+      saveLocal();
+      renderObjectives();
+      updateSummaryBar();
+    }
+
+    function deleteObjective(type, id) {
+      ensureObjectives();
+      local.objectives[currentMonth][type] = local.objectives[currentMonth][type].filter(o => o.id !== id);
+      saveLocal();
+      renderObjectives();
+      updateSummaryBar();
+    }
+
+    function updateObjText(type, id, value) {
+      ensureObjectives();
+      const obj = local.objectives[currentMonth][type].find(o => o.id === id);
+      if (obj) { obj.text = value; saveLocal(); }
+    }
+
+    function updateObjReason(type, id, value) {
+      ensureObjectives();
+      const obj = local.objectives[currentMonth][type].find(o => o.id === id);
+      if (obj) { obj.reason = value; saveLocal(); }
+    }
+
+    function renderObjectives() {
+      ensureObjectives();
+      ['positive', 'negative'].forEach(type => {
+        const list = document.getElementById(type + 'ObjList');
+        const items = local.objectives[currentMonth][type];
+        if (items.length === 0) {
+          list.innerHTML = `<div class="empty-state" style="padding:24px 0;font-size:12px;">Sin objetivos aún</div>`;
+          return;
+        }
+        list.innerHTML = items.map(obj => `
       <div class="obj-item" id="objitem-${obj.id}">
-        <div class="obj-check ${obj.done ? (type==='positive' ? 'done' : 'failed') : ''}" onclick="toggleObjective('${type}','${obj.id}')"></div>
+        <div class="obj-check ${obj.done ? (type === 'positive' ? 'done' : 'failed') : ''}" onclick="toggleObjective('${type}','${obj.id}')"></div>
         <div style="flex:1">
-          <textarea class="obj-text ${obj.done && type==='positive' ? 'completed' : ''}" rows="1"
+          <textarea class="obj-text ${obj.done && type === 'positive' ? 'completed' : ''}" rows="1"
             onchange="updateObjText('${type}','${obj.id}',this.value)"
             oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"
           >${obj.text}</textarea>
@@ -1242,160 +1973,161 @@ function renderObjectives() {
         </div>
       </div>
     `).join('');
-  });
-}
+      });
+    }
 
-// ========================================
-// REFLECTION
-// ========================================
-function ensureReflection() {
-  if (!local.reflection[currentMonth]) {
-    local.reflection[currentMonth] = { learnings: '', feelings: '', summary: '', mood: '' };
-  }
-}
+    // ========================================
+    // REFLECTION
+    // ========================================
+    function ensureReflection() {
+      if (!local.reflection[currentMonth]) {
+        local.reflection[currentMonth] = { learnings: '', feelings: '', summary: '', mood: '' };
+      }
+    }
 
-function saveReflection() {
-  ensureReflection();
-  local.reflection[currentMonth].learnings = document.getElementById('ref-learnings').value;
-  local.reflection[currentMonth].feelings = document.getElementById('ref-feelings').value;
-  local.reflection[currentMonth].summary = document.getElementById('ref-summary').value;
-  saveLocal();
-}
+    function saveReflection() {
+      ensureReflection();
+      local.reflection[currentMonth].learnings = document.getElementById('ref-learnings').value;
+      local.reflection[currentMonth].feelings = document.getElementById('ref-feelings').value;
+      local.reflection[currentMonth].summary = document.getElementById('ref-summary').value;
+      saveLocal();
+    }
 
-function selectMood(emoji) {
-  ensureReflection();
-  local.reflection[currentMonth].mood = emoji;
-  saveLocal();
-  document.querySelectorAll('.mood-btn').forEach(btn => {
-    btn.classList.toggle('selected', btn.textContent === emoji);
-  });
-}
+    function selectMood(emoji) {
+      ensureReflection();
+      local.reflection[currentMonth].mood = emoji;
+      saveLocal();
+      document.querySelectorAll('.mood-btn').forEach(btn => {
+        btn.classList.toggle('selected', btn.textContent === emoji);
+      });
+    }
 
-function renderReflection() {
-  ensureReflection();
-  const r = local.reflection[currentMonth];
-  document.getElementById('ref-learnings').value = r.learnings || '';
-  document.getElementById('ref-feelings').value = r.feelings || '';
-  document.getElementById('ref-summary').value = r.summary || '';
-  document.querySelectorAll('.mood-btn').forEach(btn => {
-    btn.classList.toggle('selected', btn.textContent === r.mood);
-  });
-}
+    function renderReflection() {
+      ensureReflection();
+      const r = local.reflection[currentMonth];
+      document.getElementById('ref-learnings').value = r.learnings || '';
+      document.getElementById('ref-feelings').value = r.feelings || '';
+      document.getElementById('ref-summary').value = r.summary || '';
+      document.querySelectorAll('.mood-btn').forEach(btn => {
+        btn.classList.toggle('selected', btn.textContent === r.mood);
+      });
+    }
 
-// ========================================
-// SUMMARY BAR
-// ========================================
-function updateSummaryBar() {
-  const days = DAYS_IN_MONTH[currentMonth];
-  const today = new Date();
-  const isCurrentMonth = today.getMonth() === currentMonth;
-  const maxDays = isCurrentMonth ? today.getDate() : days;
+    // ========================================
+    // SUMMARY BAR
+    // ========================================
+    function updateSummaryBar() {
+      const days = DAYS_IN_MONTH[currentMonth];
+      const today = new Date();
+      const isCurrentMonth = today.getMonth() === currentMonth;
+      const maxDays = isCurrentMonth ? today.getDate() : days;
 
-  let completedDays = 0;
-  for (let d = 1; d <= maxDays; d++) {
-    if (habits.some(h => checks[`${currentMonth}-${h.id}-${d}`] === 'done')) completedDays++;
-  }
+      let completedDays = 0;
+      for (let d = 1; d <= maxDays; d++) {
+        if (habits.some(h => checks[`${currentMonth}-${h.id}-${d}`] === 'done')) completedDays++;
+      }
 
-  let streak = 0;
-  for (let d = maxDays; d >= 1; d--) {
-    if (habits.length > 0 && habits.some(h => checks[`${currentMonth}-${h.id}-${d}`] === 'done')) {
-      streak++;
-    } else break;
-  }
+      let streak = 0;
+      for (let d = maxDays; d >= 1; d--) {
+        if (habits.length > 0 && habits.some(h => checks[`${currentMonth}-${h.id}-${d}`] === 'done')) {
+          streak++;
+        } else break;
+      }
 
-  const totalChecks = habits.reduce((acc, h) => {
-    let done = 0;
-    for (let d = 1; d <= maxDays; d++) if (checks[`${currentMonth}-${h.id}-${d}`] === 'done') done++;
-    return acc + done;
-  }, 0);
-  const maxChecks = habits.length * maxDays;
-  const rate = maxChecks > 0 ? Math.round((totalChecks / maxChecks) * 100) + '%' : '—';
+      const totalChecks = habits.reduce((acc, h) => {
+        let done = 0;
+        for (let d = 1; d <= maxDays; d++) if (checks[`${currentMonth}-${h.id}-${d}`] === 'done') done++;
+        return acc + done;
+      }, 0);
+      const maxChecks = habits.length * maxDays;
+      const rate = maxChecks > 0 ? Math.round((totalChecks / maxChecks) * 100) + '%' : '—';
 
-  ensureObjectives();
-  const posObjs = local.objectives[currentMonth].positive;
-  const negObjs = local.objectives[currentMonth].negative;
-  const doneObjs = posObjs.filter(o => o.done).length + negObjs.filter(o => o.done).length;
-  const totalObjs = posObjs.length + negObjs.length;
+      ensureObjectives();
+      const posObjs = local.objectives[currentMonth].positive;
+      const negObjs = local.objectives[currentMonth].negative;
+      const doneObjs = posObjs.filter(o => o.done).length + negObjs.filter(o => o.done).length;
+      const totalObjs = posObjs.length + negObjs.length;
 
-  document.getElementById('stat-days').textContent = completedDays;
-  document.getElementById('stat-streak').textContent = streak;
-  document.getElementById('stat-rate').textContent = rate;
-  document.getElementById('stat-objectives').textContent = `${doneObjs}/${totalObjs}`;
-}
+      document.getElementById('stat-days').textContent = completedDays;
+      document.getElementById('stat-streak').textContent = streak;
+      document.getElementById('stat-rate').textContent = rate;
+      document.getElementById('stat-objectives').textContent = `${doneObjs}/${totalObjs}`;
+    }
 
-// ========================================
-// NAVIGATION
-// ========================================
-function buildMonthBar() {
-  const bar = document.getElementById('monthBar');
-  bar.innerHTML = '';
-  MONTHS.forEach((m, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'month-pill' + (i === currentMonth ? ' active' : '');
-    btn.textContent = m;
-    const hasChecks = Object.keys(checks).some(k => k.startsWith(i + '-') && checks[k]);
-    const hasObjs = local.objectives[i] && (
-      (local.objectives[i].positive || []).length > 0 ||
-      (local.objectives[i].negative || []).length > 0
-    );
-    if (hasChecks || hasObjs) btn.classList.add('has-data');
-    btn.onclick = () => selectMonth(i);
-    bar.appendChild(btn);
-  });
-}
+    // ========================================
+    // NAVIGATION
+    // ========================================
+    function buildMonthBar() {
+      const bar = document.getElementById('monthBar');
+      bar.innerHTML = '';
+      MONTHS.forEach((m, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'month-pill' + (i === currentMonth ? ' active' : '');
+        btn.textContent = m;
+        const hasChecks = Object.keys(checks).some(k => k.startsWith(i + '-') && checks[k]);
+        const hasObjs = local.objectives[i] && (
+          (local.objectives[i].positive || []).length > 0 ||
+          (local.objectives[i].negative || []).length > 0
+        );
+        if (hasChecks || hasObjs) btn.classList.add('has-data');
+        btn.onclick = () => selectMonth(i);
+        bar.appendChild(btn);
+      });
+    }
 
-function selectMonth(i) {
-  currentMonth = i;
-  document.querySelectorAll('.month-pill').forEach((el, idx) => {
-    el.classList.toggle('active', idx === i);
-  });
-  renderAll();
-}
+    function selectMonth(i) {
+      currentMonth = i;
+      document.querySelectorAll('.month-pill').forEach((el, idx) => {
+        el.classList.toggle('active', idx === i);
+      });
+      renderAll();
+    }
 
-function switchTab(tab, event) {
-  activeTab = tab;
-  document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-  if (event) event.target.classList.add('active');
-  document.getElementById('tab-' + tab).classList.add('active');
-  renderAll();
-}
+    function switchTab(tab, event) {
+      activeTab = tab;
+      document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      if (event) event.target.classList.add('active');
+      document.getElementById('tab-' + tab).classList.add('active');
+      renderAll();
+    }
 
-function renderAll() {
-  const mName = MONTHS[currentMonth];
-  const yearLabel = `${mName} ${CURRENT_YEAR}`;
-  document.getElementById('monthNameHeader').textContent = `— ${yearLabel}`;
-  document.getElementById('objMonthHeader').textContent = `— ${yearLabel}`;
-  document.getElementById('refMonthHeader').textContent = `— ${yearLabel}`;
-  renderHabitGrid();
-  renderObjectives();
-  renderReflection();
-  updateSummaryBar();
-}
+    function renderAll() {
+      const mName = MONTHS[currentMonth];
+      const yearLabel = `${mName} ${CURRENT_YEAR}`;
+      document.getElementById('monthNameHeader').textContent = `— ${yearLabel}`;
+      document.getElementById('objMonthHeader').textContent = `— ${yearLabel}`;
+      document.getElementById('refMonthHeader').textContent = `— ${yearLabel}`;
+      renderHabitGrid();
+      renderObjectives();
+      renderReflection();
+      updateSummaryBar();
+    }
 
-// ========================================
-// TOAST
-// ========================================
-function showToast(msg, isError = false) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = 'toast show' + (isError ? ' error' : '');
-  clearTimeout(window._toastTimer);
-  window._toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
-}
+    // ========================================
+    // TOAST
+    // ========================================
+    function showToast(msg, isError = false) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = 'toast show' + (isError ? ' error' : '');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+    }
 
-// ========================================
-// INIT
-// ========================================
-async function init() {
-  loadLocal();
-  if (token) {
-    await launchApp();
-  }
-  // If no token, auth overlay is already visible by default
-}
+    // ========================================
+    // INIT
+    // ========================================
+    async function init() {
+      loadLocal();
+      if (token) {
+        await launchApp();
+      }
+      // If no token, auth overlay is already visible by default
+    }
 
-init();
-</script>
+    init();
+  </script>
 </body>
+
 </html>

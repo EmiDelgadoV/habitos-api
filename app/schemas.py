@@ -51,3 +51,6 @@ class HabitLogResponse(BaseModel):
     habit_id: int
     date: date
     completed: bool
+
+class HabitLogCreate(BaseModel):
+    completed_at: Optional[date] = None
