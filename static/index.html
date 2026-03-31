@@ -1175,7 +1175,7 @@
       <div class="auth-form active" id="authFormLogin">
         <div class="auth-field">
           <label class="auth-label">Email</label>
-          <input class="auth-input" id="loginEmail" type="email" placeholder="tu@email.com"
+          <input class="auth-input" id="loginEmail" type="text" placeholder="email o usuario" autocomplete="username"
             onkeydown="if(event.key==='Enter') doLogin()">
         </div>
         <div class="auth-field">
@@ -1268,16 +1268,10 @@
       <div class="habit-controls">
         <input class="habit-input" id="newHabitInput" placeholder="+ Agregar hábito (ej: Meditar 10 min)" maxlength="50"
           onkeydown="if(event.key==='Enter') addHabit()">
-        <input class="habit-input" id="newHabitEmoji" placeholder="Emoji" style="max-width:80px; text-align:center;"
-          maxlength="4">
+
         <button class="btn btn-primary" onclick="addHabit()">Agregar</button>
       </div>
-      <div
-        style="font-family:'DM Mono',monospace; font-size:11px; color:var(--text3); margin-bottom: 14px; display:flex; gap:16px; flex-wrap:wrap;">
-        <span>1er clic → <span style="color:var(--accent)">✓ cumplido</span></span>
-        <span>2do clic → <span style="color:var(--red)">✗ no cumplido</span> (+ razón opcional)</span>
-        <span>3er clic → borrar</span>
-      </div>
+
       <div class="habit-grid-container">
         <table class="habit-grid" id="habitTable">
           <thead id="habitTableHead"></thead>
@@ -1549,19 +1543,28 @@
     // APP LAUNCH
     // ========================================
     async function launchApp() {
-      showLoading('Despertando la API...');
-      try {
-        await loadHabitsFromAPI();
-        await loadAllHistory();
-        rebuildChecks();
-        document.getElementById('authOverlay').classList.add('hidden');
-        document.getElementById('yearBadge').textContent = CURRENT_YEAR;
-        buildMonthBar();
-        renderAll();
-      } catch (e) {
-        setAuthError('No se pudo conectar. La API puede estar iniciando (plan gratuito de Render). Esperá 30 segundos y recargá la página.');
-      } finally {
-        hideLoading();
+      const MAX_RETRIES = 5;
+      const RETRY_DELAY = 8000;
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        showLoading(attempt === 1 ? 'Conectando...' : `Iniciando API... (intento ${attempt}/${MAX_RETRIES})`);
+        try {
+          await loadHabitsFromAPI();
+          await loadAllHistory();
+          rebuildChecks();
+          document.getElementById('authOverlay').classList.add('hidden');
+          document.getElementById('yearBadge').textContent = CURRENT_YEAR;
+          buildMonthBar();
+          renderAll();
+          hideLoading();
+          return;
+        } catch (e) {
+          if (attempt < MAX_RETRIES) {
+            await new Promise(r => setTimeout(r, RETRY_DELAY));
+          } else {
+            hideLoading();
+            setAuthError('No se pudo conectar con la API. Verificá tu conexión e intentá de nuevo.');
+          }
+        }
       }
     }
 
