@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgres/data
+    environment:
+      - POSTGRES_DB=habitos_db
+      - POSTGRES_USER=habitos_user
+      - POSTGRES_PASSWORD=habitos_pass
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U habitos_user -d habitos_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+psycopg://habitos_user:habitos_pass@db:5432/habitos_db
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
