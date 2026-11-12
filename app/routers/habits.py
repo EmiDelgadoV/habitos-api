@@ -1,11 +1,19 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from datetime import date
+from datetime import date, timedelta 
 from app.database import get_db
 from app import models, schemas
 from app.auth.utils import get_current_user
 
 router = APIRouter(prefix="/habits", tags=["Hábitos"])
+
+def calcular_racha(log_dates: set, hoy: date) -> int:
+    racha = 0
+    dia = hoy
+    while dia in log_dates:
+        racha += 1
+        dia -= timedelta(days=1)
+    return racha
 
 @router.post("/", response_model=schemas.HabitResponse, status_code=201)
 def create_habit(
@@ -117,17 +125,12 @@ def get_history(
         models.HabitLog.habit_id == habit_id
     ).order_by(models.HabitLog.date.desc()).all()
 
-    streak = 0
-    check_date = date.today()
     log_dates = {log.date for log in logs}
-
-    while check_date in log_dates:
-        streak += 1
-        check_date = check_date.replace(day=check_date.day - 1)
+    streak = calcular_racha(log_dates, date.today())
 
     return {
         "habit_id": habit_id,
         "total_completions": len(logs),
         "current_streak": streak,
-        "logs": [{"date": str(log.date), "completed": log.completed} for log in logs]
+        "logs": [{"completed_at": str(log.date), "completed": log.completed} for log in logs]
     }
